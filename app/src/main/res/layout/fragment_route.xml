@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context=".fragments.RouteFragment">
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/distanceTextView"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="171dp" android:layout_marginTop="301dp" android:layout_alignParentTop="true"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/priceTextView" android:layout_marginTop="374dp"
+            android:layout_alignParentTop="true" android:layout_alignParentStart="true"
+            android:layout_marginStart="153dp"/>
+    <Button
+            android:text="Zamow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/sendToMapButton"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="164dp" android:layout_marginTop="483dp" android:layout_alignParentTop="true"
+            android:visibility="invisible"/>
+    <SearchView
+            android:layout_width="406dp"
+            android:layout_height="266dp"
+            android:layout_marginStart="5dp" android:id="@+id/routeSearchView"
+            android:layout_marginTop="2dp"
+            android:layout_alignParentTop="true" android:layout_alignParentStart="true"
+            android:editTextColor="@android:color/white"
+            android:textColorHint="@android:color/white"/>
+</RelativeLayout>

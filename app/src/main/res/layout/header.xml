@@ -6,6 +6,7 @@
 android:background="@color/c3">
 
     <de.hdodenhof.circleimageview.CircleImageView
+            android:src="@drawable/herbrzeszowadwa"
             android:layout_width="120dp"
             android:elevation="6dp"
             android:layout_height="120dp"

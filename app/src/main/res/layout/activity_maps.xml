@@ -22,18 +22,17 @@ tools:context="com.example.pracainz.activities.MapsActivity">
 
 
 </RelativeLayout>
-    <fragment
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:id="@+id/map"
-              tools:context=".activities.MapsActivity"
-              android:name="com.google.android.gms.maps.SupportMapFragment"/>
+    <FrameLayout
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
    <com.google.android.material.navigation.NavigationView
         android:layout_width="match_parent"
           android:layout_height="match_parent"
         android:id="@+id/navigationView"
         app:menu="@menu/menu_item"
-        android:background="@color/c3"
+        android:background="@color/c1"
         app:itemTextColor="@color/c2"
         android:layout_gravity="start"
         app:headerLayout="@layout/header"
