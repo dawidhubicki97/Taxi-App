@@ -2,6 +2,7 @@ package com.example.pracainz.fragments
 
 
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -18,9 +19,21 @@ import android.widget.SearchView
 import com.example.pracainz.R
 import com.example.pracainz.models.GoogleDirections
 import com.example.pracainz.models.LocationModel
+import com.example.pracainz.models.Order
 import com.example.pracainz.models.Polyline
+import com.firebase.geofire.GeoFire
+import com.firebase.geofire.GeoLocation
+import com.firebase.geofire.GeoQueryDataEventListener
+import com.firebase.geofire.GeoQueryEventListener
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import com.google.gson.Gson
 import com.google.maps.android.PolyUtil
 import kotlinx.android.synthetic.main.fragment_route.*
@@ -28,51 +41,42 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
 import java.lang.Exception
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import java.util.*
+
 
 class RouteFragment : Fragment() {
+
+
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var distance:Int?=null
     private var decodedPoly:String?=null
-    private var targetLocation:LocationModel?=null
+    private var targetLocation:LatLng?=null
     private var myLastLocation:LocationModel?=null
+    private var root:View?=null
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         getMyLastLocation()
-        return inflater.inflate(R.layout.fragment_route, container, false)
+        root=inflater.inflate(R.layout.fragment_route, container, false)
+        return root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        //confirmLocationButton.setOnClickListener {
-       //     findRoute()
-       // }
-
-        routeSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(p0: String?): Boolean {
-                var loc=routeSearchView.query.toString()
-                var addressList = listOf<Address>()
-                if(loc!=null && !loc.equals("")){
-                    val geoCoder=Geocoder(context)
-                    try{
-                        addressList=geoCoder.getFromLocationName(loc,1)
-                    }
-                    catch (e: IOException){
-                        Log.d("szukanie","nic nie znalazlo")
-                    }
-                    val target=LocationModel(addressList.get(0).longitude,addressList.get(0).latitude)
-                    targetLocation=target
-                    findRoute()
-                }
-             return true
-            }
-
-            override fun onQueryTextChange(p0: String?): Boolean {
-                return true
-            }
-
-        })
         sendToMapButton.setOnClickListener{
             Log.d("droga","sendToMapButton")
+            val uid= FirebaseAuth.getInstance().uid
+            val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests")
+            //val thisOrder= Order(myLastLocation!!,targetLocation!!,getPrice()!!,distance?.toDouble()!!)
+           // ref.push().setValue(thisOrder)
+            var geofire= GeoFire(ref)
+            geofire.setLocation(uid, GeoLocation(myLastLocation!!.longitude, myLastLocation!!.latitude),GeoFire.CompletionListener { key, error ->
+
+            })
+            getClosestDriver()
             val fragmentMap=MapFragment()
             var bundle= Bundle()
             bundle.putInt("distance",distance!!)
@@ -80,7 +84,53 @@ class RouteFragment : Fragment() {
             fragmentMap.arguments=bundle
             activity!!.supportFragmentManager.beginTransaction().replace(R.id.container, fragmentMap).commit()
         }
+        Places.initialize(activity!!.applicationContext, "AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ")
+        val placesClient = Places.createClient(activity!!.applicationContext)
+        val autocompleteFragment = childFragmentManager.findFragmentById(R.id.autocomplete_fragment) as? AutocompleteSupportFragment
+        autocompleteFragment!!.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME,Place.Field.LAT_LNG))
+        autocompleteFragment!!.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                Log.i(TAG, "Place: ${place.name}, ${place.latLng.toString()}")
+                targetLocation=place.latLng
+                findRoute()
+            }
+
+            override fun onError(status: Status) {
+                Log.i(TAG, "An error occurred: $status")
+            }
+        })
     }
+    fun getPrice(): Double? {
+        return (distance!!*3.0)/1000
+    }
+    fun getClosestDriver(){
+        val ref= FirebaseDatabase.getInstance().getReference("/AvailableDrivers")
+        var geofire=GeoFire(ref)
+        var geoQuery=geofire.queryAtLocation(GeoLocation(myLastLocation!!.longitude,myLastLocation!!.latitude),10.0)
+        geoQuery.addGeoQueryEventListener(object:GeoQueryEventListener{
+            override fun onGeoQueryReady() {
+                Log.d("znaleziono","z")
+            }
+
+            override fun onKeyEntered(key: String?, location: GeoLocation?) {
+                Log.d("znaleziono",key)
+            }
+
+            override fun onKeyMoved(key: String?, location: GeoLocation?) {
+                Log.d("znaleziono",key)
+            }
+
+            override fun onKeyExited(key: String?) {
+                Log.d("znaleziono",key)
+            }
+
+            override fun onGeoQueryError(error: DatabaseError?) {
+                Log.d("znaleziono",error.toString())
+            }
+
+        })
+    }
+
 
     @SuppressLint("MissingPermission")
     fun getMyLastLocation() {
@@ -98,15 +148,20 @@ class RouteFragment : Fragment() {
         Log.d("droga","findRoute")
 
     }
+
     fun showDistance(){
-        distanceTextView.text=distance.toString()
-        val price= distance?.times(3.0)
-        priceTextView.text=price.toString()
+        distanceTextView.text="Odległość: "+distance.toString()+"m"
+        priceTextView.text="Cena: "+getPrice().toString()+"zł"
         Log.d("droga","showDistance")
     }
     private fun getRouteUrl(lastLocation:LocationModel):String{
         return "https://maps.googleapis.com/maps/api/directions/json?origin=${lastLocation.latitude},${lastLocation.longitude}&destination=${targetLocation?.latitude},${targetLocation?.longitude}&mode=transit&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ"
     }
+
+
+
+
+
     inner class GetRoute(val url: String) : AsyncTask<Void, Void, ForReturn>() {
 
 

@@ -16,7 +16,10 @@ import android.view.View
 import android.view.ViewGroup
 
 import com.example.pracainz.R
+import com.example.pracainz.activities.DriveActivity
 import com.example.pracainz.models.LocationModel
+import com.firebase.geofire.GeoFire
+import com.firebase.geofire.GeoLocation
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -60,9 +63,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             val decodedPolyLine=PolyUtil.decode(routePolylineCoded)
             mMap.addPolyline(PolylineOptions().addAll(decodedPolyLine))
         }
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        val rzeszow = LatLng(50.032369, 22.000550)
+
+
+
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(rzeszow))
     }
     @SuppressLint("MissingPermission")
     private fun getLocation(){
@@ -70,7 +76,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         var locationNetwork : Location?=null
         var hasGps=false
         var hasNetwork=false
-        val ref= FirebaseDatabase.getInstance().getReference("/users/$uid/lastLocalization")
+        val ref= FirebaseDatabase.getInstance().getReference("/AvailableDrivers")
         val locationmanager=activity?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         hasGps=locationmanager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         hasNetwork=locationmanager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
@@ -80,10 +86,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     override fun onLocationChanged(location: Location?) {
 
                         if (location != null) {
-                            val locationModel= LocationModel(locationGps!!.longitude,locationGps!!.latitude)
-                            ref.setValue(locationModel).addOnSuccessListener {
+                            //val locationModel= LocationModel(locationGps!!.longitude,locationGps!!.latitude)
+                            //ref.setValue(locationModel).addOnSuccessListener {
+                            var geofire=GeoFire(ref)
+                                geofire.setLocation(uid, GeoLocation(locationGps!!.longitude, locationGps!!.latitude))
 
-                            }
                             Log.d("CodeAndroidLocation","GPS Latitude:"+locationGps!!.latitude)
                             Log.d("CodeAndroidLocation","GPS Longitude:"+locationGps!!.longitude)
                         }
@@ -112,10 +119,17 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         LocationListener {
                         override fun onLocationChanged(location: Location?) {
                             if(location!=null){
-                                val locationModel= LocationModel(locationNetwork!!.longitude,locationNetwork!!.latitude)
-                                ref.setValue(locationModel).addOnSuccessListener {
+                                if(activity!! is DriveActivity) {
 
+                                    var geofire = GeoFire(ref)
+                                    geofire.setLocation(
+                                        uid,
+                                        GeoLocation(locationNetwork!!.longitude, locationNetwork!!.latitude),
+                                        GeoFire.CompletionListener { key, error ->
+
+                                        })
                                 }
+
                                 Log.d("CodeAndroidLocation","Network Latitude:"+locationNetwork!!.latitude)
                                 Log.d("CodeAndroidLocation","Network Latitude:"+locationNetwork!!.longitude)
                             }

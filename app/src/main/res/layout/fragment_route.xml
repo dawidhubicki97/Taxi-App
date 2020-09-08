@@ -8,25 +8,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/distanceTextView"
             android:layout_alignParentStart="true"
-            android:layout_marginStart="171dp" android:layout_marginTop="301dp" android:layout_alignParentTop="true"/>
+            android:layout_marginStart="141dp" android:layout_marginTop="301dp" android:layout_alignParentTop="true"
+            android:textColor="@android:color/holo_green_light" android:textSize="18sp"/>
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/priceTextView" android:layout_marginTop="374dp"
             android:layout_alignParentTop="true" android:layout_alignParentStart="true"
-            android:layout_marginStart="153dp"/>
+            android:layout_marginStart="141dp" android:textColor="@android:color/holo_green_light"
+            android:textSize="18sp"/>
     <Button
             android:text="Zamow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/sendToMapButton"
             android:layout_alignParentStart="true"
-            android:layout_marginStart="164dp" android:layout_marginTop="483dp" android:layout_alignParentTop="true"
-            android:visibility="invisible"/>
-    <SearchView
-            android:layout_width="406dp"
-            android:layout_height="266dp"
-            android:layout_marginStart="5dp" android:id="@+id/routeSearchView"
-            android:layout_marginTop="2dp"
-            android:layout_alignParentTop="true" android:layout_alignParentStart="true"
-            android:editTextColor="@android:color/white"
-            android:textColorHint="@android:color/white"/>
+            android:layout_marginStart="151dp" android:layout_marginTop="437dp" android:layout_alignParentTop="true"
+            android:visibility="invisible"
+            android:background="@drawable/rounded_login_register_text"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+    <fragment android:id="@+id/autocomplete_fragment"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="100dp"
+              android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+    />
+</LinearLayout>
 </RelativeLayout>
