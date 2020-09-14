@@ -4,8 +4,8 @@
           android:title="Kurs"/>
     <item android:id="@+id/mapmenuitem"
           android:title="Mapa"/>
-    <item android:id="@+id/options"
-          android:title="Ustawienia"/>
+    <item android:id="@+id/chatmenuitem"
+          android:title="Wiadomosci"/>
 
 
 

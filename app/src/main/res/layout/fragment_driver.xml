@@ -4,11 +4,8 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              tools:context=".fragments.DriverFragment">
-
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="@string/hello_blank_fragment"/>
-
+            android:layout_height="662dp"
+            android:layout_marginTop="100dp" android:id="@+id/driverRecyclerView"/>
 </FrameLayout>

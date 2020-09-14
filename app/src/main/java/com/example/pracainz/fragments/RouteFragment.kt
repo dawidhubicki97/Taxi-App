@@ -23,7 +23,6 @@ import com.example.pracainz.models.Order
 import com.example.pracainz.models.Polyline
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
-import com.firebase.geofire.GeoQueryDataEventListener
 import com.firebase.geofire.GeoQueryEventListener
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -70,10 +69,13 @@ class RouteFragment : Fragment() {
             Log.d("droga","sendToMapButton")
             val uid= FirebaseAuth.getInstance().uid
             val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests")
-            //val thisOrder= Order(myLastLocation!!,targetLocation!!,getPrice()!!,distance?.toDouble()!!)
-           // ref.push().setValue(thisOrder)
             var geofire= GeoFire(ref)
-            geofire.setLocation(uid, GeoLocation(myLastLocation!!.longitude, myLastLocation!!.latitude),GeoFire.CompletionListener { key, error ->
+            geofire.setLocation(uid, GeoLocation(myLastLocation!!.latitude, myLastLocation!!.longitude),GeoFire.CompletionListener { key, error ->
+
+            })
+            val secondref=FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget")
+            var secondgeofire=GeoFire(secondref)
+            secondgeofire.setLocation(uid,GeoLocation(targetLocation!!.latitude,targetLocation!!.longitude),GeoFire.CompletionListener { key, error ->
 
             })
             getClosestDriver()

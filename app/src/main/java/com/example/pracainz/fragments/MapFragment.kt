@@ -119,7 +119,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         LocationListener {
                         override fun onLocationChanged(location: Location?) {
                             if(location!=null){
-                                if(activity!! is DriveActivity) {
+                                if(activity is DriveActivity) {
 
                                     var geofire = GeoFire(ref)
                                     geofire.setLocation(

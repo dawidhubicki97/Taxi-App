@@ -11,6 +11,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.example.pracainz.R
+import com.example.pracainz.fragments.ChatFragment
 import com.example.pracainz.fragments.MapFragment
 import com.example.pracainz.fragments.RouteFragment
 import com.google.android.material.navigation.NavigationView
@@ -53,6 +54,9 @@ class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.newcourse->{
                 Log.d("klik","newcourse")
                 replaceFragment(RouteFragment())
+            }
+            R.id.chatmenuitem->{
+                replaceFragment(ChatFragment())
             }
 
         }

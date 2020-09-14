@@ -9,12 +9,14 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import com.example.pracainz.fragments.ChatFragment
 import com.example.pracainz.fragments.DriverFragment
 import com.example.pracainz.fragments.MapFragment
 import com.example.pracainz.fragments.RouteFragment
 import com.firebase.geofire.GeoFire
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.activity_maps.*
 
@@ -56,6 +58,9 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
                 Log.d("klik","newcourse")
                 replaceFragment(DriverFragment())
             }
+            R.id.chatmenuitem->{
+                replaceFragment(ChatFragment())
+            }
 
         }
         return true
@@ -78,7 +83,12 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
         val uid= FirebaseAuth.getInstance().uid
         val ref= FirebaseDatabase.getInstance().getReference("/AvailableDrivers")
         var geofire= GeoFire(ref)
-        geofire.removeLocation(uid)
+        geofire.removeLocation(uid,object:GeoFire.CompletionListener{
+            override fun onComplete(key: String?, error: DatabaseError?) {
+
+            }
+
+        })
         super.onStop()
     }
 }
