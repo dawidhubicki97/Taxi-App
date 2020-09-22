@@ -16,10 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 import com.example.pracainz.R
 import com.example.pracainz.adapters.RecyclerAdapter
-import com.example.pracainz.models.AvailableDrive
-import com.example.pracainz.models.GoogleDirections
-import com.example.pracainz.models.LocationModel
-import com.example.pracainz.models.OrdersInProgress
+import com.example.pracainz.models.*
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
 import com.firebase.geofire.GeoQueryEventListener
@@ -31,8 +28,12 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.gson.Gson
+import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.GroupieViewHolder
+import com.xwray.groupie.Item
 import kotlinx.android.synthetic.main.fragment_driver.*
 import kotlinx.android.synthetic.main.fragment_route.*
+import kotlinx.android.synthetic.main.route_item.view.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.lang.Exception
@@ -45,6 +46,8 @@ class DriverFragment : Fragment() {
     private var distance:Int?=null
     private var decodedPoly:String?=null
     private var root:View?=null
+    var adapter=GroupAdapter<GroupieViewHolder>()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         root=inflater.inflate(R.layout.fragment_driver, container, false)
@@ -113,11 +116,12 @@ class DriverFragment : Fragment() {
             }
 
             override fun onKeyEntered(key: String?, location: GeoLocation?) {
-
-                var availabledrive=AvailableDrive(key!!,location!!.latitude,location!!.longitude)
-                data.add(availabledrive)
-                driverAdapter.submitList(data)
-                driverRecycler!!.adapter=driverAdapter
+                activity!!.runOnUiThread {
+                    var availabledrive=AvailableDrive(key!!,location!!.latitude,location!!.longitude)
+                    data.add(availabledrive)
+                    driverAdapter.submitList(data)
+                    driverRecycler!!.adapter=driverAdapter
+                }
             }
 
             override fun onKeyMoved(key: String?, location: GeoLocation?) {
@@ -173,3 +177,15 @@ class DriverFragment : Fragment() {
 
 
 
+class RouteItem(val availableDrive: AvailableDrive): Item<GroupieViewHolder>(){
+    override fun getLayout(): Int {
+        return R.layout.route_item
+    }
+
+    override fun bind(viewHolder: GroupieViewHolder, position: Int) {
+        Log.d("znaleziono","doszlotu")
+        viewHolder.itemView.routeTextView.setText(availableDrive.user)
+    }
+
+
+}

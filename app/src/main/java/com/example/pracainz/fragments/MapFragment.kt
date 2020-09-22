@@ -14,10 +14,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import androidx.recyclerview.widget.RecyclerView
 
 import com.example.pracainz.R
 import com.example.pracainz.activities.DriveActivity
+import com.example.pracainz.activities.MapsActivity
 import com.example.pracainz.models.LocationModel
+import com.example.pracainz.models.OrdersInProgress
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -29,7 +33,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.maps.android.PolyUtil
 import kotlinx.android.synthetic.main.activity_maps.*
 
@@ -40,10 +47,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private lateinit var uid:String
-
+    private var root:View?=null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val root = inflater.inflate(R.layout.fragment_map, container, false)
+        root = inflater.inflate(R.layout.fragment_map, container, false)
         val mapview=root!!.findViewById<MapView>(R.id.map)
         mapview.onCreate(savedInstanceState)
         mapview.onResume()
@@ -56,12 +63,41 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+
         mMap.isMyLocationEnabled=true
         val distance=arguments?.getInt("distance")
         val routePolylineCoded=arguments?.getString("decodedPoly")
         if(routePolylineCoded!=null){
             val decodedPolyLine=PolyUtil.decode(routePolylineCoded)
             mMap.addPolyline(PolylineOptions().addAll(decodedPolyLine))
+            if(activity is DriveActivity){
+                Log.d("aktiwiti","driver")
+                val buttonEnd=root!!.findViewById(R.id.endRouteButton) as Button
+                buttonEnd.visibility=View.VISIBLE
+                buttonEnd.setOnClickListener {
+                    val ref= FirebaseDatabase.getInstance().getReference("/OrdersInProgress")
+                    ref.addValueEventListener(object: ValueEventListener {
+                        override fun onCancelled(error: DatabaseError) {
+
+                        }
+
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            snapshot.children.forEach {
+                                val orderinprogress = it.getValue(OrdersInProgress::class.java)
+                                if (orderinprogress!!.driver == uid) {
+                                    it.ref.removeValue()
+                                }
+                            }
+                        }
+
+                    })
+
+                }
+            }
+            if(activity is MapsActivity )
+            {
+                Log.d("aktiwiti","mapa")
+            }
         }
         val rzeszow = LatLng(50.032369, 22.000550)
 

@@ -12,5 +12,10 @@
             android:layout_height="671dp"
             android:layout_alignParentEnd="true" android:layout_marginEnd="0dp" android:layout_marginTop="60dp"
             android:layout_alignParentTop="true"/>
+    <Button
+            android:text="Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/endRouteButton"
+            android:layout_gravity="top|right" android:visibility="invisible"/>
 
 </FrameLayout>
