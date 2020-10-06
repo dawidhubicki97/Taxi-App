@@ -30,6 +30,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -47,7 +48,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private lateinit var uid:String
+    private var myDriver:String?=null
     private var root:View?=null
+    private var driverMaker: Marker?=null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         root = inflater.inflate(R.layout.fragment_map, container, false)
@@ -59,7 +62,58 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         getLocation()
         return root
     }
+    fun showMyDriver(){
+        Log.d("aktiwiti","showdriver")
+        val ref= FirebaseDatabase.getInstance().getReference("/OrdersInProgress")
+        ref.addValueEventListener(object:ValueEventListener{
+            override fun onCancelled(error: DatabaseError) {
 
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                snapshot.children.forEach {
+                    val orderinprogress = it.getValue(OrdersInProgress::class.java)
+                    Log.d("notestujese", orderinprogress!!.driver)
+                    if (orderinprogress!!.user == uid) {
+                        myDriver=orderinprogress.driver
+                        getMyDriverLocation()
+                    }
+                }
+            }
+
+        })
+    }
+
+    fun getMyDriverLocation(){
+        val firstref=FirebaseDatabase.getInstance().getReference("/users/"+myDriver+"/lastLocalization")
+        val ref= FirebaseDatabase.getInstance().getReference("/users/"+myDriver)
+        var geofire=GeoFire(ref)
+        firstref.addValueEventListener(object:ValueEventListener{
+            override fun onCancelled(error: DatabaseError) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                geofire.getLocation("lastLocalization",object:com.firebase.geofire.LocationCallback{
+
+                    override fun onLocationResult(key: String?, location: GeoLocation?) {
+                        Log.d("pokaz",key)
+                        Log.d("pokaz",location!!.latitude.toString())
+                        driverMaker?.remove()
+                        driverMaker=mMap.addMarker(MarkerOptions().position(LatLng(location!!.longitude,location.latitude)).title("kierowca"))
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError?) {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                })
+            }
+
+        })
+
+
+    }
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
@@ -86,6 +140,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                                 val orderinprogress = it.getValue(OrdersInProgress::class.java)
                                 if (orderinprogress!!.driver == uid) {
                                     it.ref.removeValue()
+                                    val refsecond=FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.user+"/orders").push()
+                                    refsecond.setValue(orderinprogress)
+                                    val refthird=FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.driver+"/orders").push()
+                                    refthird.setValue(orderinprogress)
+                                    buttonEnd.visibility=View.INVISIBLE
+                                    mMap.clear()
                                 }
                             }
                         }
@@ -96,8 +156,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
             if(activity is MapsActivity )
             {
-                Log.d("aktiwiti","mapa")
+                Log.d("aktiwiti","driver")
+                if(routePolylineCoded!=null)
+                    showMyDriver()
             }
+
         }
         val rzeszow = LatLng(50.032369, 22.000550)
 
@@ -113,6 +176,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         var hasGps=false
         var hasNetwork=false
         val ref= FirebaseDatabase.getInstance().getReference("/AvailableDrivers")
+        val refsecond=FirebaseDatabase.getInstance().getReference("/users/"+uid)
         val locationmanager=activity?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         hasGps=locationmanager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         hasNetwork=locationmanager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
@@ -122,8 +186,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     override fun onLocationChanged(location: Location?) {
 
                         if (location != null) {
-                            //val locationModel= LocationModel(locationGps!!.longitude,locationGps!!.latitude)
-                            //ref.setValue(locationModel).addOnSuccessListener {
                             var geofire=GeoFire(ref)
                                 geofire.setLocation(uid, GeoLocation(locationGps!!.longitude, locationGps!!.latitude))
 
@@ -157,13 +219,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                             if(location!=null){
                                 if(activity is DriveActivity) {
 
-                                    var geofire = GeoFire(ref)
-                                    geofire.setLocation(
-                                        uid,
-                                        GeoLocation(locationNetwork!!.longitude, locationNetwork!!.latitude),
-                                        GeoFire.CompletionListener { key, error ->
+                                   // var geofire = GeoFire(ref)
+                                   // geofire.setLocation(uid, GeoLocation(locationNetwork!!.longitude, locationNetwork!!.latitude), GeoFire.CompletionListener { key, error ->
+//
+                                   //     })
+                                    var geofiresecond = GeoFire(refsecond)
+                                    geofiresecond.setLocation("lastLocalization", GeoLocation(locationNetwork!!.longitude, locationNetwork!!.latitude), GeoFire.CompletionListener { key, error ->
 
-                                        })
+                                    })
                                 }
 
                                 Log.d("CodeAndroidLocation","Network Latitude:"+locationNetwork!!.latitude)

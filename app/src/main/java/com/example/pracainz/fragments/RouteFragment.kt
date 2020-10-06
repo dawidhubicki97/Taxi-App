@@ -17,10 +17,7 @@ import android.widget.EditText
 import android.widget.SearchView
 
 import com.example.pracainz.R
-import com.example.pracainz.models.GoogleDirections
-import com.example.pracainz.models.LocationModel
-import com.example.pracainz.models.Order
-import com.example.pracainz.models.Polyline
+import com.example.pracainz.models.*
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
 import com.firebase.geofire.GeoQueryEventListener
@@ -44,6 +41,7 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import java.util.*
 
 
@@ -54,11 +52,13 @@ class RouteFragment : Fragment() {
     private var distance:Int?=null
     private var decodedPoly:String?=null
     private var targetLocation:LatLng?=null
+    private var targetName:String?=null
     private var myLastLocation:LocationModel?=null
     private var root:View?=null
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         getMyLastLocation()
+        listenToOrders()
         root=inflater.inflate(R.layout.fragment_route, container, false)
         return root
     }
@@ -78,6 +78,11 @@ class RouteFragment : Fragment() {
             secondgeofire.setLocation(uid,GeoLocation(targetLocation!!.latitude,targetLocation!!.longitude),GeoFire.CompletionListener { key, error ->
 
             })
+            val thirdref=FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget/"+uid+"/name")
+            thirdref.setValue(targetName)
+            val fourthref=FirebaseDatabase.getInstance().getReference("/OrderData/"+uid)
+            val orderData=OrderData(getPrice()!!,distance!!)
+            fourthref.setValue(orderData)
             getClosestDriver()
             val fragmentMap=MapFragment()
             var bundle= Bundle()
@@ -94,6 +99,7 @@ class RouteFragment : Fragment() {
             override fun onPlaceSelected(place: Place) {
                 Log.i(TAG, "Place: ${place.name}, ${place.latLng.toString()}")
                 targetLocation=place.latLng
+                targetName=place.name
                 findRoute()
             }
 
@@ -104,6 +110,37 @@ class RouteFragment : Fragment() {
     }
     fun getPrice(): Double? {
         return (distance!!*3.0)/1000
+    }
+    fun listenToOrders(){
+        Log.d("notestujese","start")
+        val uid= FirebaseAuth.getInstance().uid
+        val ref= FirebaseDatabase.getInstance().getReference("/OrdersInProgress")
+        ref.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                snapshot.children.forEach {
+                    val orderinprogress = it.getValue(OrdersInProgress::class.java)
+                    Log.d("notestujese", orderinprogress!!.user)
+                    if (orderinprogress!!.user == uid) {
+                        val url=getSecondRouteUrl(orderinprogress)
+                        GetRoute(url).execute()
+                        Log.d("notestujese", orderinprogress.user)
+                    }
+                }
+            }
+
+        })
+    }
+    fun sendToMap(){
+        val fragmentMap=MapFragment()
+        var bundle= Bundle()
+        bundle.putInt("distance",distance!!)
+        bundle.putString("decodedPoly",decodedPoly!!)
+        fragmentMap.arguments=bundle
+        activity!!.supportFragmentManager.beginTransaction().replace(R.id.container, fragmentMap).commit()
     }
     fun getClosestDriver(){
         val ref= FirebaseDatabase.getInstance().getReference("/AvailableDrivers")
@@ -159,7 +196,9 @@ class RouteFragment : Fragment() {
     private fun getRouteUrl(lastLocation:LocationModel):String{
         return "https://maps.googleapis.com/maps/api/directions/json?origin=${lastLocation.latitude},${lastLocation.longitude}&destination=${targetLocation?.latitude},${targetLocation?.longitude}&mode=transit&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ"
     }
-
+    private fun getSecondRouteUrl(orderinprogress:OrdersInProgress):String{
+        return "https://maps.googleapis.com/maps/api/directions/json?origin=${orderinprogress.startlat},${orderinprogress.startlng}&destination=${orderinprogress?.targetlat},${orderinprogress?.targetlng}&mode=transit&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ"
+    }
 
 
 
@@ -190,7 +229,6 @@ class RouteFragment : Fragment() {
             Log.d("droga",distanceTemp.toString())
             if(distanceTemp!=null) {
                 Log.d("dystans",distanceTemp.distance.toString())
-
                 distance=distanceTemp.distance
                 decodedPoly=distanceTemp.decodedPolyline
                 showDistance()

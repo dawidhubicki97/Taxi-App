@@ -6,6 +6,8 @@
           android:title="Mapa"/>
     <item android:id="@+id/chatmenuitem"
           android:title="Wiadomosci"/>
+    <item android:id="@+id/ordersMenuItem"
+          android:title="Historia zamowien"/>
 
 
 

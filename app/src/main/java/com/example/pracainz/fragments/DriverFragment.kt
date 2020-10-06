@@ -46,7 +46,6 @@ class DriverFragment : Fragment() {
     private var distance:Int?=null
     private var decodedPoly:String?=null
     private var root:View?=null
-    var adapter=GroupAdapter<GroupieViewHolder>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -108,6 +107,7 @@ class DriverFragment : Fragment() {
         driverAdapter = RecyclerAdapter()
         val data: ArrayList<AvailableDrive> = ArrayList()
         val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests")
+
         var geofire= GeoFire(ref)
         var geoQuery=geofire.queryAtLocation(GeoLocation(myLastLocation!!.latitude,myLastLocation!!.longitude),10.0)
         geoQuery.addGeoQueryEventListener(object: GeoQueryEventListener {
@@ -117,10 +117,21 @@ class DriverFragment : Fragment() {
 
             override fun onKeyEntered(key: String?, location: GeoLocation?) {
                 activity!!.runOnUiThread {
-                    var availabledrive=AvailableDrive(key!!,location!!.latitude,location!!.longitude)
-                    data.add(availabledrive)
-                    driverAdapter.submitList(data)
-                    driverRecycler!!.adapter=driverAdapter
+                    val refsecond= FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget/"+key+"/name")
+                    refsecond.addListenerForSingleValueEvent(object:ValueEventListener{
+                        override fun onCancelled(error: DatabaseError) {
+
+                        }
+
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val name=snapshot.getValue(String::class.java)
+                            var availabledrive=AvailableDrive(name!!,key!!,location!!.latitude,location!!.longitude)
+                            data.add(availabledrive)
+                            driverAdapter.submitList(data)
+                            driverRecycler!!.adapter=driverAdapter
+                        }
+
+                    })
                 }
             }
 

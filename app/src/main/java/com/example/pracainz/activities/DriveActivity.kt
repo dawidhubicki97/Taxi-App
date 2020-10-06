@@ -9,10 +9,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-import com.example.pracainz.fragments.ChatFragment
-import com.example.pracainz.fragments.DriverFragment
-import com.example.pracainz.fragments.MapFragment
-import com.example.pracainz.fragments.RouteFragment
+import com.example.pracainz.fragments.*
 import com.firebase.geofire.GeoFire
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
@@ -61,7 +58,9 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
             R.id.chatmenuitem->{
                 replaceFragment(ChatFragment())
             }
-
+            R.id.ordersMenuItem->{
+                replaceFragment(OrdersFragment())
+            }
         }
         return true
     }
