@@ -22,7 +22,6 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Item
 import kotlinx.android.synthetic.main.chat_from_item.view.*
 import kotlinx.android.synthetic.main.chat_to_item.view.*
-import kotlinx.android.synthetic.main.chat_to_item.view.messageTextView
 import kotlinx.android.synthetic.main.fragment_chat.*
 import java.util.*
 
@@ -45,6 +44,7 @@ class ChatFragment : Fragment() {
             val ref=FirebaseDatabase.getInstance().getReference("/OrdersInProgress/"+messagesRef+"/messages").push()
             val message = ChatMessage(uid!!,toId!!,editTextChat.text.toString(),System.currentTimeMillis()/1000)
             ref.setValue(message)
+            chatEditText.text.clear()
         }
 
         return root
@@ -105,9 +105,9 @@ class ChatFragment : Fragment() {
                 if(chatMessage!=null){
                     Log.d("ilerazy","trzy")
                     if(chatMessage.fromId==uid)
-                    adapter.add(ChatFromItem(chatMessage))
+                    adapter.add(ChatToItem(chatMessage))
                     else
-                        adapter.add(ChatToItem(chatMessage))
+                        adapter.add(ChatFromItem(chatMessage))
 
 
                 }
@@ -130,13 +130,13 @@ class ChatFromItem(val chatMessage:ChatMessage):Item<GroupieViewHolder>(){
     }
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
-        viewHolder.itemView.messageTextView.setText(chatMessage.messageText)
-        viewHolder.itemView.dateTextView.setText(getDateTimeFromEpocLongOfSeconds(chatMessage.timestamp))
+        viewHolder.itemView.text_message_body.setText(chatMessage.messageText)
+        viewHolder.itemView.text_message_time.setText(getDateTimeFromEpocLongOfSeconds(chatMessage.timestamp))
     }
     private fun getDateTimeFromEpocLongOfSeconds(epoc: Long): String? {
         try {
             val netDate = Date(epoc * 1000)
-            return netDate.toString()
+            return netDate.hours.toString()+":"+netDate.minutes+"."+netDate.seconds
         } catch (e: Exception) {
             return e.toString()
         }
@@ -148,13 +148,13 @@ class ChatToItem(val chatMessage:ChatMessage):Item<GroupieViewHolder>(){
     }
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
-        viewHolder.itemView.messageTextView.setText(chatMessage.messageText)
-        viewHolder.itemView.dateTextViewT.setText(getDateTimeFromEpocLongOfSeconds(chatMessage.timestamp))
+        viewHolder.itemView.text_message_bodyy.setText(chatMessage.messageText)
+        viewHolder.itemView.text_message_timee.setText(getDateTimeFromEpocLongOfSeconds(chatMessage.timestamp))
     }
     private fun getDateTimeFromEpocLongOfSeconds(epoc: Long): String? {
         try {
             val netDate = Date(epoc * 1000)
-            return netDate.toString()
+            return netDate.hours.toString()+":"+netDate.minutes+"."+netDate.seconds
         } catch (e: Exception) {
             return e.toString()
         }

@@ -8,6 +8,7 @@ import android.location.Geocoder
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
+import android.renderscript.Sampler
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -42,6 +43,8 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.util.*
 
 
@@ -50,12 +53,16 @@ class RouteFragment : Fragment() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var distance:Int?=null
+    private var rating:Double?=null
     private var decodedPoly:String?=null
     private var targetLocation:LatLng?=null
     private var targetName:String?=null
     private var myLastLocation:LocationModel?=null
+    private var traffic:String?=null
     private var root:View?=null
+    private var alreadyHaveOrder=false
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        retainInstance=true
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         getMyLastLocation()
         listenToOrders()
@@ -83,13 +90,14 @@ class RouteFragment : Fragment() {
             val fourthref=FirebaseDatabase.getInstance().getReference("/OrderData/"+uid)
             val orderData=OrderData(getPrice()!!,distance!!)
             fourthref.setValue(orderData)
-            getClosestDriver()
-            val fragmentMap=MapFragment()
-            var bundle= Bundle()
-            bundle.putInt("distance",distance!!)
-            bundle.putString("decodedPoly",decodedPoly!!)
-            fragmentMap.arguments=bundle
-            activity!!.supportFragmentManager.beginTransaction().replace(R.id.container, fragmentMap).commit()
+            progressBarRoute.visibility=View.VISIBLE
+            sendToMapButton.visibility=View.INVISIBLE
+            priceTextView.visibility=View.INVISIBLE
+            distanceTextView.visibility=View.INVISIBLE
+            trafficTextView.visibility=View.INVISIBLE
+            infoTextView.visibility=View.VISIBLE
+            //autocomplete_fragment.view!!.visibility=View.INVISIBLE
+
         }
         Places.initialize(activity!!.applicationContext, "AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ")
         val placesClient = Places.createClient(activity!!.applicationContext)
@@ -107,9 +115,24 @@ class RouteFragment : Fragment() {
                 Log.i(TAG, "An error occurred: $status")
             }
         })
+        val ref=FirebaseDatabase.getInstance().getReference("/rating")
+        ref.addListenerForSingleValueEvent(object:ValueEventListener{
+            override fun onCancelled(error: DatabaseError) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                rating= snapshot.getValue(Double::class.java)!!
+            }
+
+        })
     }
     fun getPrice(): Double? {
-        return (distance!!*3.0)/1000
+        val value=(distance!!*3.0*rating!!)/1000
+        val df = DecimalFormat("#.##")
+        df.roundingMode = RoundingMode.CEILING
+        Log.d("liczbeczka",df.format(value))
+        return df.format(value).replace(",", ".").toDouble()
     }
     fun listenToOrders(){
         Log.d("notestujese","start")
@@ -126,8 +149,30 @@ class RouteFragment : Fragment() {
                     Log.d("notestujese", orderinprogress!!.user)
                     if (orderinprogress!!.user == uid) {
                         val url=getSecondRouteUrl(orderinprogress)
+                        alreadyHaveOrder=true
                         GetRoute(url).execute()
                         Log.d("notestujese", orderinprogress.user)
+                    }
+                }
+            }
+
+        })
+        val secondRef=FirebaseDatabase.getInstance().getReference("/OrderData")
+        secondRef.addValueEventListener(object:ValueEventListener{
+            override fun onCancelled(error: DatabaseError) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                snapshot.children.forEach {
+                    if(it.key==uid){
+                        progressBarRoute.visibility=View.VISIBLE
+                        sendToMapButton.visibility=View.INVISIBLE
+                        priceTextView.visibility=View.INVISIBLE
+                        distanceTextView.visibility=View.INVISIBLE
+                        trafficTextView.visibility=View.INVISIBLE
+                        infoTextView.visibility=View.VISIBLE
+                        autocomplete_fragment.view!!.visibility=View.INVISIBLE
                     }
                 }
             }
@@ -140,7 +185,7 @@ class RouteFragment : Fragment() {
         bundle.putInt("distance",distance!!)
         bundle.putString("decodedPoly",decodedPoly!!)
         fragmentMap.arguments=bundle
-        activity!!.supportFragmentManager.beginTransaction().replace(R.id.container, fragmentMap).commit()
+        activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.container, fragmentMap)?.commit()
     }
     fun getClosestDriver(){
         val ref= FirebaseDatabase.getInstance().getReference("/AvailableDrivers")
@@ -191,13 +236,15 @@ class RouteFragment : Fragment() {
     fun showDistance(){
         distanceTextView.text="Odległość: "+distance.toString()+"m"
         priceTextView.text="Cena: "+getPrice().toString()+"zł"
+        trafficTextView.text=traffic
         Log.d("droga","showDistance")
     }
     private fun getRouteUrl(lastLocation:LocationModel):String{
-        return "https://maps.googleapis.com/maps/api/directions/json?origin=${lastLocation.latitude},${lastLocation.longitude}&destination=${targetLocation?.latitude},${targetLocation?.longitude}&mode=transit&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ"
+        Log.d("lala","https://maps.googleapis.com/maps/api/directions/json?origin=${lastLocation.latitude},${lastLocation.longitude}&destination=${targetLocation?.latitude},${targetLocation?.longitude}&departure_time=now&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ")
+        return "https://maps.googleapis.com/maps/api/directions/json?origin=${lastLocation.latitude},${lastLocation.longitude}&destination=${targetLocation?.latitude},${targetLocation?.longitude}&departure_time=now&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ"
     }
     private fun getSecondRouteUrl(orderinprogress:OrdersInProgress):String{
-        return "https://maps.googleapis.com/maps/api/directions/json?origin=${orderinprogress.startlat},${orderinprogress.startlng}&destination=${orderinprogress?.targetlat},${orderinprogress?.targetlng}&mode=transit&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ"
+        return "https://maps.googleapis.com/maps/api/directions/json?origin=${orderinprogress.startlat},${orderinprogress.startlng}&destination=${orderinprogress?.targetlat},${orderinprogress?.targetlng}&departure_time=now&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ"
     }
 
 
@@ -212,31 +259,40 @@ class RouteFragment : Fragment() {
             val response = client.newCall(request).execute()
             val data = response.body!!.string()
             var distance=0
+            var durationInTraffic=""
             var polyline=""
             try {
                 val resObj = Gson().fromJson(data, GoogleDirections::class.java)
                 distance=resObj.routes.get(0).legs.get(0).distance.value
                 polyline=resObj.routes.get(0).overview_polyline.points
+                durationInTraffic=resObj.routes.get(0).legs.get(0).duration_in_traffic.text
 
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            var distanceAndPoly=ForReturn(distance,polyline)
+            var distanceAndPoly=ForReturn(distance,polyline,durationInTraffic)
             return distanceAndPoly
         }
 
         override fun onPostExecute(distanceTemp:ForReturn) {
             Log.d("droga",distanceTemp.toString())
             if(distanceTemp!=null) {
-                Log.d("dystans",distanceTemp.distance.toString())
+
                 distance=distanceTemp.distance
                 decodedPoly=distanceTemp.decodedPolyline
-                showDistance()
-                sendToMapButton.visibility=View.VISIBLE
+                traffic=distanceTemp.traffic
+                if(alreadyHaveOrder==false) {
+                    showDistance()
+                    sendToMapButton.visibility = View.VISIBLE
+                }
+                else{
+
+                    sendToMap()
+                }
             }
         }
     }
 }
-class ForReturn(val distance:Int,val decodedPolyline:String){
-    constructor():this(0,"")
+class ForReturn(val distance:Int,val decodedPolyline:String,val traffic:String){
+    constructor():this(0,"","")
 }

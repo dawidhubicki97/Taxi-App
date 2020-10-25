@@ -33,17 +33,22 @@ data class Geocoded_waypoints (
     val place_id : String,
     val types : List<String>
 )
-data class Legs (
+    data class Legs (
+        val duration_in_traffic : Duration_in_traffic,
+        val distance : Distance,
+        val duration : Duration,
+        val end_address : String,
+        val end_location : End_location,
+        val start_address : String,
+        val start_location : Start_location,
+        val steps : List<Steps>,
+        val traffic_speed_entry : List<String>,
+        val via_waypoint : List<String>
+)
+data class Duration_in_traffic (
 
-    val distance : Distance,
-    val duration : Duration,
-    val end_address : String,
-    val end_location : End_location,
-    val start_address : String,
-    val start_location : Start_location,
-    val steps : List<Steps>,
-    val traffic_speed_entry : List<String>,
-    val via_waypoint : List<String>
+    val text : String,
+    val value : Int
 )
 data class Northeast (
 

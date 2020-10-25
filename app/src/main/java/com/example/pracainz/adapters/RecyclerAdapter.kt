@@ -52,7 +52,7 @@ constructor(itemView: View): RecyclerView.ViewHolder(itemView){
     val description = itemView.list_description
     fun bind(drive: AvailableDrive){
         title.setText(drive.name)
-        description.setText(drive.lat.toString()+" "+drive.lng.toString())
+        description.setText("Dystans: "+drive.distance+ " Stawka: "+ drive.price)
         itemView.setOnClickListener {
             var firstlocation:GeoLocation?=null
             var secondlocation:GeoLocation
@@ -92,7 +92,7 @@ constructor(itemView: View): RecyclerView.ViewHolder(itemView){
                                     val orderdata=snapshot.getValue(OrderData::class.java)
 
                                     refsecond = FirebaseDatabase.getInstance().getReference("/OrdersInProgress").push()
-                                    var orderinprogress = OrdersInProgress(uid!!, key!!, firstlocation!!.latitude,firstlocation!!.longitude, secondlocation!!.latitude,secondlocation!!.longitude,orderdata!!.price,orderdata.distance)
+                                    var orderinprogress = OrdersInProgress(uid!!, key!!, firstlocation!!.latitude,firstlocation!!.longitude, secondlocation!!.latitude,secondlocation!!.longitude,orderdata!!.price,orderdata.distance,0.0,System.currentTimeMillis()/1000)
                                     refsecond.setValue(orderinprogress)
                                     refthird.removeValue()
                                 }

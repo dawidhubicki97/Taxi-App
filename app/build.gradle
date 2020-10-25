@@ -45,4 +45,5 @@ dependencies {
     implementation 'com.google.android.gms:play-services-places:17.0.0'
     implementation 'com.firebase:geofire-java:3.0.0'
     implementation "com.xwray:groupie:2.8.1"
+    implementation 'com.squareup.picasso:picasso:2.71828'
 }

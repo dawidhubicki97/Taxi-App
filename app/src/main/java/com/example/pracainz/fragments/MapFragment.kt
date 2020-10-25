@@ -53,6 +53,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var driverMaker: Marker?=null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+
         root = inflater.inflate(R.layout.fragment_map, container, false)
         val mapview=root!!.findViewById<MapView>(R.id.map)
         mapview.onCreate(savedInstanceState)
@@ -153,6 +154,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     })
 
                 }
+
             }
             if(activity is MapsActivity )
             {
@@ -160,6 +162,39 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 if(routePolylineCoded!=null)
                     showMyDriver()
             }
+
+            val ref=FirebaseDatabase.getInstance().getReference("/OrdersInProgress")
+
+            ref.addValueEventListener(object: ValueEventListener {
+                override fun onCancelled(error: DatabaseError) {
+
+                }
+
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    var isInBase=false
+                        snapshot.children.forEach {
+                            val orderinprogress = it.getValue(OrdersInProgress::class.java)
+                            if (orderinprogress!!.driver == uid) {
+                                isInBase=true
+                            } else if (orderinprogress!!.user == uid) {
+                                isInBase=true
+                            }
+                        }
+                    if(isInBase==false){
+                        mMap.clear()
+                        decodedPolyLine.clear()
+                        if(activity is MapsActivity) {
+                            var bundle = Bundle()
+                            bundle.putString("myDriver", myDriver!!)
+                            val fragmentEnd = EndRouteFragment()
+                            fragmentEnd.arguments = bundle
+                            activity!!.supportFragmentManager.beginTransaction().replace(R.id.container, fragmentEnd)
+                                .commit()
+                        }
+                    }
+                }
+
+            })
 
         }
         val rzeszow = LatLng(50.032369, 22.000550)
@@ -184,13 +219,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             if(hasGps){
                 locationmanager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,0F,object: LocationListener {
                     override fun onLocationChanged(location: Location?) {
+                        if(location!=null){
+                            if(activity is DriveActivity) {
+                                var geofiresecond = GeoFire(refsecond)
+                                geofiresecond.setLocation("lastLocalization", GeoLocation(locationGps!!.longitude, locationGps!!.latitude), GeoFire.CompletionListener { key, error ->
 
-                        if (location != null) {
-                            var geofire=GeoFire(ref)
-                                geofire.setLocation(uid, GeoLocation(locationGps!!.longitude, locationGps!!.latitude))
+                                })
+                            }
 
-                            Log.d("CodeAndroidLocation","GPS Latitude:"+locationGps!!.latitude)
-                            Log.d("CodeAndroidLocation","GPS Longitude:"+locationGps!!.longitude)
+                            Log.d("CodeAndroidLocation","Network Latitude:"+locationGps!!.latitude)
+                            Log.d("CodeAndroidLocation","Network Latitude:"+locationGps!!.longitude)
                         }
                     }
 
@@ -218,11 +256,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         override fun onLocationChanged(location: Location?) {
                             if(location!=null){
                                 if(activity is DriveActivity) {
-
-                                   // var geofire = GeoFire(ref)
-                                   // geofire.setLocation(uid, GeoLocation(locationNetwork!!.longitude, locationNetwork!!.latitude), GeoFire.CompletionListener { key, error ->
-//
-                                   //     })
                                     var geofiresecond = GeoFire(refsecond)
                                     geofiresecond.setLocation("lastLocalization", GeoLocation(locationNetwork!!.longitude, locationNetwork!!.latitude), GeoFire.CompletionListener { key, error ->
 

@@ -43,7 +43,7 @@ class RegisterActivity : AppCompatActivity() {
         val uid= FirebaseAuth.getInstance().uid?: ""
         val ref= FirebaseDatabase.getInstance().getReference("/users/$uid")
         val description=""
-        val user= User(uid, username,description,"",0)
+        val user= User(uid, username,0)
         ref.setValue(user).addOnSuccessListener {
             Toast.makeText(this, "New User Added", Toast.LENGTH_SHORT).show()
         }

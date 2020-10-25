@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import com.example.pracainz.R
 import com.example.pracainz.fragments.ChatFragment
 import com.example.pracainz.fragments.MapFragment
+import com.example.pracainz.fragments.OrdersFragment
 import com.example.pracainz.fragments.RouteFragment
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_maps.*
@@ -57,6 +58,9 @@ class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
             R.id.chatmenuitem->{
                 replaceFragment(ChatFragment())
+            }
+            R.id.ordersMenuItem->{
+                replaceFragment(OrdersFragment())
             }
 
         }

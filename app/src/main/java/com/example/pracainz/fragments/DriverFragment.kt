@@ -48,7 +48,7 @@ class DriverFragment : Fragment() {
     private var root:View?=null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-
+        retainInstance=true
         root=inflater.inflate(R.layout.fragment_driver, container, false)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         getMyLastLocation()
@@ -61,7 +61,7 @@ class DriverFragment : Fragment() {
         bundle.putInt("distance",distance!!)
         bundle.putString("decodedPoly",decodedPoly!!)
         fragmentMap.arguments=bundle
-        activity!!.supportFragmentManager.beginTransaction().replace(R.id.container, fragmentMap).commit()
+        activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.container, fragmentMap)?.commit()
     }
     fun listenToOrders(){
         Log.d("notestujese","start")
@@ -125,10 +125,22 @@ class DriverFragment : Fragment() {
 
                         override fun onDataChange(snapshot: DataSnapshot) {
                             val name=snapshot.getValue(String::class.java)
-                            var availabledrive=AvailableDrive(name!!,key!!,location!!.latitude,location!!.longitude)
-                            data.add(availabledrive)
-                            driverAdapter.submitList(data)
-                            driverRecycler!!.adapter=driverAdapter
+                            var refthird= FirebaseDatabase.getInstance().getReference("/OrderData/"+key)
+                            refthird.addListenerForSingleValueEvent(object:ValueEventListener{
+                                override fun onCancelled(error: DatabaseError) {
+                                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                                }
+
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    val orderData=snapshot.getValue(OrderData::class.java)
+                                    var availabledrive=AvailableDrive(name!!,key!!,location!!.latitude,location!!.longitude,orderData!!.price,orderData!!.distance)
+                                    data.add(availabledrive)
+                                    driverAdapter.submitList(data)
+                                    driverRecycler!!.adapter=driverAdapter
+                                }
+
+                            })
+
                         }
 
                     })
@@ -159,16 +171,18 @@ class DriverFragment : Fragment() {
             val response = client.newCall(request).execute()
             val data = response.body!!.string()
             var distance=0
+            var durationInTraffic=""
             var polyline=""
             try {
                 val resObj = Gson().fromJson(data, GoogleDirections::class.java)
                 distance=resObj.routes.get(0).legs.get(0).distance.value
                 polyline=resObj.routes.get(0).overview_polyline.points
+                durationInTraffic=resObj.routes.get(0).legs.get(0).duration_in_traffic.text
 
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            var distanceAndPoly=ForReturn(distance,polyline)
+            var distanceAndPoly=ForReturn(distance,polyline,durationInTraffic)
             return distanceAndPoly
         }
 
