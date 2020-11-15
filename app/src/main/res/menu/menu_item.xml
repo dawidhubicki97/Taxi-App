@@ -8,6 +8,8 @@
           android:title="Wiadomosci"/>
     <item android:id="@+id/ordersMenuItem"
           android:title="Historia zamowien"/>
+    <item android:id="@+id/logoutmenuitem"
+          android:title="Wyloguj"/>
 
 
 

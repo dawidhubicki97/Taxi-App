@@ -1,6 +1,7 @@
 package com.example.pracainz.activities
 
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -16,6 +17,8 @@ import com.example.pracainz.fragments.MapFragment
 import com.example.pracainz.fragments.OrdersFragment
 import com.example.pracainz.fragments.RouteFragment
 import com.google.android.material.navigation.NavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
 import kotlinx.android.synthetic.main.activity_maps.*
 
 class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -25,13 +28,13 @@ class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var toolbar: Toolbar?=null
     private var toggle: ActionBarDrawerToggle?=null
     private var fragment:Fragment?=null
-
+    private lateinit var uid:String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         drawerlayout = findViewById(R.id.drawer)
         toolbar = findViewById(R.id.toolbar)
-
+        uid= FirebaseAuth.getInstance().uid?: ""
         setSupportActionBar(toolbar)
         getSupportActionBar()!!.setDisplayShowTitleEnabled(false)
 
@@ -40,7 +43,22 @@ class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle!!.syncState()
         fragment=supportFragmentManager.findFragmentByTag("myfragment")
         navigationView.setNavigationItemSelectedListener(this)
-        Log.d("klik","czy to wogole to")
+        val ref= FirebaseDatabase.getInstance().getReference(".info/connected")
+        ref.addValueEventListener(object:ValueEventListener{
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val connected=snapshot.getValue(Boolean::class.java)
+                if(connected!!){
+                    val con= FirebaseDatabase.getInstance().getReference("users/"+uid+"/isOnline")
+                    con.setValue(true)
+                    con.onDisconnect().setValue(false)
+                }
+            }
+
+        })
         if(savedInstanceState==null)
             replaceFragment(MapFragment())
     }
@@ -62,9 +80,19 @@ class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.ordersMenuItem->{
                 replaceFragment(OrdersFragment())
             }
+            R.id.logoutmenuitem->{
+                logout()
+            }
 
         }
         return true
+    }
+
+    fun logout(){
+        var instance= FirebaseAuth.getInstance().signOut()
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
     fun replaceFragment(fragment: Fragment, routeid:Int?=null) {

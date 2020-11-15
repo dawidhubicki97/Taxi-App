@@ -1,5 +1,6 @@
 package com.example.pracainz.activities
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.pracainz.R
@@ -13,8 +14,10 @@ import com.example.pracainz.fragments.*
 import com.firebase.geofire.GeoFire
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import kotlinx.android.synthetic.main.activity_maps.*
 
 class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -24,7 +27,7 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
     private var toolbar: Toolbar?=null
     private var toggle: ActionBarDrawerToggle?=null
     private var fragment:Fragment?=null
-
+    private lateinit var uid:String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drive)
@@ -33,13 +36,28 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
 
         setSupportActionBar(toolbar)
         getSupportActionBar()!!.setDisplayShowTitleEnabled(false)
-
+        uid= FirebaseAuth.getInstance().uid?: ""
         toggle= ActionBarDrawerToggle(this,drawerlayout,toolbar,R.string.drawerOpen,R.string.drawerClose)
         drawerlayout!!.addDrawerListener(toggle!!)
         toggle!!.syncState()
         fragment=supportFragmentManager.findFragmentByTag("myfragment")
         navigationView.setNavigationItemSelectedListener(this)
-        Log.d("klik","cz")
+        val ref= FirebaseDatabase.getInstance().getReference(".info/connected")
+        ref.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val connected=snapshot.getValue(Boolean::class.java)
+                if(connected!!){
+                    val con= FirebaseDatabase.getInstance().getReference("users/"+uid+"/isOnline")
+                    con.setValue(true)
+                    con.onDisconnect().setValue(false)
+                }
+            }
+
+        })
         if(savedInstanceState==null)
             replaceFragment(MapFragment())
     }
@@ -61,6 +79,9 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
             R.id.ordersMenuItem->{
                 replaceFragment(OrdersFragment())
             }
+            R.id.logoutmenuitem->{
+                logout()
+            }
         }
         return true
     }
@@ -78,16 +99,24 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
         fragmentTransaction.commit()
     }
 
+    fun logout(){
+            var instance=FirebaseAuth.getInstance().signOut()
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+    }
+
+
     override fun onStop() {
         val uid= FirebaseAuth.getInstance().uid
-        val ref= FirebaseDatabase.getInstance().getReference("/AvailableDrivers")
-        var geofire= GeoFire(ref)
-        geofire.removeLocation(uid,object:GeoFire.CompletionListener{
-            override fun onComplete(key: String?, error: DatabaseError?) {
+       // val ref= FirebaseDatabase.getInstance().getReference("/AvailableDrivers")
+       // var geofire= GeoFire(ref)
+       // geofire.removeLocation(uid,object:GeoFire.CompletionListener{
+        //    override fun onComplete(key: String?, error: DatabaseError?) {
 
-            }
+        //    }
 
-        })
+       // })
         super.onStop()
     }
 }

@@ -1,6 +1,7 @@
 package com.example.pracainz.fragments
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -15,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
 import com.example.pracainz.R
@@ -24,15 +26,13 @@ import com.example.pracainz.models.LocationModel
 import com.example.pracainz.models.OrdersInProgress
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
+import com.firebase.geofire.GeoQueryEventListener
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -101,7 +101,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         Log.d("pokaz",key)
                         Log.d("pokaz",location!!.latitude.toString())
                         driverMaker?.remove()
-                        driverMaker=mMap.addMarker(MarkerOptions().position(LatLng(location!!.longitude,location.latitude)).title("kierowca"))
+                        driverMaker=mMap.addMarker(MarkerOptions().position(LatLng(location!!.longitude,location.latitude)).title("kierowca").icon(BitmapDescriptorFactory.fromResource(R.drawable.car)))
                     }
 
                     override fun onCancelled(databaseError: DatabaseError?) {
@@ -125,33 +125,105 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         if(routePolylineCoded!=null){
             val decodedPolyLine=PolyUtil.decode(routePolylineCoded)
             mMap.addPolyline(PolylineOptions().addAll(decodedPolyLine))
+            mMap.addMarker(MarkerOptions().position(decodedPolyLine.first()).title("Start").icon(BitmapDescriptorFactory.fromResource(R.drawable.starticon)))
+            mMap.addMarker(MarkerOptions().position(decodedPolyLine.last()).title("Koniec").icon(BitmapDescriptorFactory.fromResource(R.drawable.finishicon)))
+
+
             if(activity is DriveActivity){
+                val ref= FirebaseDatabase.getInstance().getReference("/users/"+uid+"/lastLocalization")
+                var geofire= GeoFire(ref)
+                var geoQuery=geofire.queryAtLocation(GeoLocation(decodedPolyLine.last().latitude,decodedPolyLine.last().longitude),0.2)
+                geoQuery.addGeoQueryEventListener(object:GeoQueryEventListener{
+                    override fun onGeoQueryReady() {
+                        Log.d("ideczynieide","readi")
+                    }
+
+                    override fun onKeyEntered(key: String?, location: GeoLocation?) {
+                        Log.d("ideczynieide",key)
+                    }
+
+                    override fun onKeyMoved(key: String?, location: GeoLocation?) {
+
+                    }
+
+                    override fun onKeyExited(key: String?) {
+
+                    }
+
+                    override fun onGeoQueryError(error: DatabaseError?) {
+
+                    }
+
+                })
+
                 Log.d("aktiwiti","driver")
                 val buttonEnd=root!!.findViewById(R.id.endRouteButton) as Button
                 buttonEnd.visibility=View.VISIBLE
                 buttonEnd.setOnClickListener {
-                    val ref= FirebaseDatabase.getInstance().getReference("/OrdersInProgress")
-                    ref.addValueEventListener(object: ValueEventListener {
-                        override fun onCancelled(error: DatabaseError) {
+                    val builder = AlertDialog.Builder(context)
+                    builder.setTitle("Potwierdź")
+                    builder.setMessage("Czy aby napewno chcesz zakończyć przejazd?")
 
-                        }
+                    builder.setPositiveButton("Tak") { dialog, which ->
+                        val ref= FirebaseDatabase.getInstance().getReference("/OrdersInProgress")
+                        ref.addValueEventListener(object: ValueEventListener {
+                            override fun onCancelled(error: DatabaseError) {
 
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            snapshot.children.forEach {
-                                val orderinprogress = it.getValue(OrdersInProgress::class.java)
-                                if (orderinprogress!!.driver == uid) {
-                                    it.ref.removeValue()
-                                    val refsecond=FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.user+"/orders").push()
-                                    refsecond.setValue(orderinprogress)
-                                    val refthird=FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.driver+"/orders").push()
-                                    refthird.setValue(orderinprogress)
-                                    buttonEnd.visibility=View.INVISIBLE
-                                    mMap.clear()
+                            }
+
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                snapshot.children.forEach {
+                                    val orderinprogress = it.getValue(OrdersInProgress::class.java)
+                                    if (orderinprogress!!.driver == uid) {
+                                        it.ref.removeValue()
+
+                                        val reffourth=FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.driver+"/orders")
+                                        reffourth.addListenerForSingleValueEvent(object:ValueEventListener{
+                                            override fun onCancelled(error: DatabaseError) {
+
+                                            }
+
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                var rating=0.0
+                                                var i=0
+                                                snapshot.children.forEach {
+                                                    i++
+                                                    val orderFromHistory = it.getValue(OrdersInProgress::class.java)
+                                                    rating=orderFromHistory!!.rating+rating
+                                                }
+                                                rating=rating/i
+                                                val refsecond=FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.user+"/orders").push()
+                                                refsecond.setValue(orderinprogress)
+                                                val refthird=FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.driver+"/orders").push()
+                                                if(rating>4.0) {
+                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,orderinprogress.price*0.9,orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
+                                                    refthird.setValue(newOrder)
+                                                }
+                                                if(rating>3.0 && rating <=4) {
+                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,orderinprogress.price*0.8,orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
+                                                    refthird.setValue(newOrder)
+                                                }
+                                                if(rating <=3) {
+                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,orderinprogress.price*0.7,orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
+                                                    refthird.setValue(newOrder)
+                                                }
+                                                buttonEnd.visibility=View.INVISIBLE
+                                                mMap.clear()
+                                            }
+
+                                        })
+                                    }
                                 }
                             }
-                        }
 
-                    })
+                        })
+                    }
+
+                    builder.setNegativeButton("nie") { dialog, which ->
+
+                    }
+                    builder.show()
+
 
                 }
 
@@ -216,54 +288,64 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         hasGps=locationmanager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         hasNetwork=locationmanager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
         if(hasGps||hasNetwork){
-            if(hasGps){
-                locationmanager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,0F,object: LocationListener {
-                    override fun onLocationChanged(location: Location?) {
-                        if(location!=null){
-                            if(activity is DriveActivity) {
-                                var geofiresecond = GeoFire(refsecond)
-                                geofiresecond.setLocation("lastLocalization", GeoLocation(locationGps!!.longitude, locationGps!!.latitude), GeoFire.CompletionListener { key, error ->
+            if(hasGps) {
+                locationmanager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    5000,
+                    0F,
+                    object : LocationListener {
+                        override fun onLocationChanged(location: Location?) {
+                            if (location != null) {
+                                if (activity is DriveActivity) {
+                                    var geofiresecond = GeoFire(refsecond)
+                                    geofiresecond.setLocation(
+                                        "lastLocalization",
+                                        GeoLocation(locationGps!!.longitude, locationGps!!.latitude),
+                                        GeoFire.CompletionListener { key, error ->
 
-                                })
+                                        })
+                                }
+
+                                Log.d("CodeAndroidLocation", "GPS Latitude:" + locationGps!!.latitude)
+                                Log.d("CodeAndroidLocation", "GPS Latitude:" + locationGps!!.longitude)
                             }
-
-                            Log.d("CodeAndroidLocation","Network Latitude:"+locationGps!!.latitude)
-                            Log.d("CodeAndroidLocation","Network Latitude:"+locationGps!!.longitude)
                         }
-                    }
 
-                    override fun onStatusChanged(p0: String?, p1: Int, p2: Bundle?) {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
+                        override fun onStatusChanged(p0: String?, p1: Int, p2: Bundle?) {
+                            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                        }
 
-                    override fun onProviderEnabled(p0: String?) {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
+                        override fun onProviderEnabled(p0: String?) {
+                            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                        }
 
-                    override fun onProviderDisabled(p0: String?) {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
+                        override fun onProviderDisabled(p0: String?) {
+                            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                        }
 
-                })
+                    })
+            }
                 val localGpsLocation=locationmanager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                 if(localGpsLocation!=null){
                     locationGps=localGpsLocation
                 }
-                if(hasNetwork){
-                    Log.d("CodeAndroidLocation","hasGps")
-                    locationmanager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,5000,0F,object:
+                if(hasNetwork) {
+                    locationmanager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 0F, object :
                         LocationListener {
                         override fun onLocationChanged(location: Location?) {
-                            if(location!=null){
-                                if(activity is DriveActivity) {
+                            if (location != null) {
+                                if (activity is DriveActivity) {
                                     var geofiresecond = GeoFire(refsecond)
-                                    geofiresecond.setLocation("lastLocalization", GeoLocation(locationNetwork!!.longitude, locationNetwork!!.latitude), GeoFire.CompletionListener { key, error ->
+                                    geofiresecond.setLocation(
+                                        "lastLocalization",
+                                        GeoLocation(locationNetwork!!.longitude, locationNetwork!!.latitude),
+                                        GeoFire.CompletionListener { key, error ->
 
-                                    })
+                                        })
                                 }
 
-                                Log.d("CodeAndroidLocation","Network Latitude:"+locationNetwork!!.latitude)
-                                Log.d("CodeAndroidLocation","Network Latitude:"+locationNetwork!!.longitude)
+                                Log.d("CodeAndroidLocation", "Network Latitude:" + locationNetwork!!.latitude)
+                                Log.d("CodeAndroidLocation", "Network Latitude:" + locationNetwork!!.longitude)
                             }
                         }
 
@@ -277,6 +359,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         }
 
                     })
+                }
                     val localNewtorkLocation=locationmanager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                     if(localNewtorkLocation!=null){
                         locationNetwork=localNewtorkLocation
@@ -292,8 +375,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                             Log.d("CodeAndroidLocation","GPS Latitude:"+locationGps!!.longitude)
                         }
                     }
-                }
-            }
+
+
         }
         else{
             startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))

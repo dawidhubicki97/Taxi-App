@@ -39,6 +39,7 @@ import okhttp3.Request
 import java.io.IOException
 import java.lang.Exception
 import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -102,6 +103,10 @@ class RouteFragment : Fragment() {
         Places.initialize(activity!!.applicationContext, "AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ")
         val placesClient = Places.createClient(activity!!.applicationContext)
         val autocompleteFragment = childFragmentManager.findFragmentById(R.id.autocomplete_fragment) as? AutocompleteSupportFragment
+        val northEast = LatLng(50.077474, 22.098360)
+        val southWest = LatLng(49.932459, 21.875340)
+        val border=RectangularBounds.newInstance(southWest, northEast)
+        autocompleteFragment!!.setLocationRestriction(border)
         autocompleteFragment!!.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME,Place.Field.LAT_LNG))
         autocompleteFragment!!.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
@@ -172,7 +177,7 @@ class RouteFragment : Fragment() {
                         distanceTextView.visibility=View.INVISIBLE
                         trafficTextView.visibility=View.INVISIBLE
                         infoTextView.visibility=View.VISIBLE
-                        autocomplete_fragment.view!!.visibility=View.INVISIBLE
+                        //autocomplete_fragment.view!!.visibility=View.INVISIBLE
                     }
                 }
             }
@@ -280,7 +285,7 @@ class RouteFragment : Fragment() {
 
                 distance=distanceTemp.distance
                 decodedPoly=distanceTemp.decodedPolyline
-                traffic=distanceTemp.traffic
+                traffic="Czas w korku: "+distanceTemp.traffic
                 if(alreadyHaveOrder==false) {
                     showDistance()
                     sendToMapButton.visibility = View.VISIBLE

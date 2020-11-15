@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -44,9 +45,11 @@ class DriverFragment : Fragment() {
     private var myLastLocation:LocationModel?=null
     private lateinit var driverAdapter: RecyclerAdapter
     private var distance:Int?=null
+    private lateinit var driverRecycler:RecyclerView
+    private lateinit var distanceToCustomerText:TextView
     private var decodedPoly:String?=null
     private var root:View?=null
-
+    private lateinit var data: ArrayList<AvailableDrive>
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         retainInstance=true
         root=inflater.inflate(R.layout.fragment_driver, container, false)
@@ -60,6 +63,7 @@ class DriverFragment : Fragment() {
         var bundle= Bundle()
         bundle.putInt("distance",distance!!)
         bundle.putString("decodedPoly",decodedPoly!!)
+
         fragmentMap.arguments=bundle
         activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.container, fragmentMap)?.commit()
     }
@@ -102,20 +106,26 @@ class DriverFragment : Fragment() {
     }
     fun populateList(){
         linearLayoutManager = LinearLayoutManager(context)
-        val driverRecycler=root!!.findViewById(R.id.driverRecyclerView) as RecyclerView
-        driverRecycler!!.layoutManager = linearLayoutManager
+        driverRecycler=root!!.findViewById(R.id.driverRecyclerView) as RecyclerView
+        driverRecycler.layoutManager = linearLayoutManager
         driverAdapter = RecyclerAdapter()
-        val data: ArrayList<AvailableDrive> = ArrayList()
-        val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests")
+        data= ArrayList()
+        distanceToCustomerText=root!!.findViewById(R.id.distanceToCustomerTextView) as TextView
+        findCustomers(0.5)
+    }
 
+    fun findCustomers(radius:Double){
+
+        val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests")
+        var isFound=false
         var geofire= GeoFire(ref)
-        var geoQuery=geofire.queryAtLocation(GeoLocation(myLastLocation!!.latitude,myLastLocation!!.longitude),10.0)
+        var geoQuery=geofire.queryAtLocation(GeoLocation(myLastLocation!!.latitude,myLastLocation!!.longitude),radius)
         geoQuery.addGeoQueryEventListener(object: GeoQueryEventListener {
-            override fun onGeoQueryReady() {
-                Log.d("znaleziono","z")
-            }
+
 
             override fun onKeyEntered(key: String?, location: GeoLocation?) {
+                Log.d("zobaczmyradius","znalazlo w: "+radius.toString())
+                isFound=true
                 activity!!.runOnUiThread {
                     val refsecond= FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget/"+key+"/name")
                     refsecond.addListenerForSingleValueEvent(object:ValueEventListener{
@@ -128,15 +138,18 @@ class DriverFragment : Fragment() {
                             var refthird= FirebaseDatabase.getInstance().getReference("/OrderData/"+key)
                             refthird.addListenerForSingleValueEvent(object:ValueEventListener{
                                 override fun onCancelled(error: DatabaseError) {
-                                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
                                 }
 
                                 override fun onDataChange(snapshot: DataSnapshot) {
                                     val orderData=snapshot.getValue(OrderData::class.java)
                                     var availabledrive=AvailableDrive(name!!,key!!,location!!.latitude,location!!.longitude,orderData!!.price,orderData!!.distance)
+
                                     data.add(availabledrive)
                                     driverAdapter.submitList(data)
-                                    driverRecycler!!.adapter=driverAdapter
+                                    driverRecycler.adapter=driverAdapter
+                                    distanceToCustomerText.text="Odleglosc od klienta ponizej: "+radius + "km"
+
                                 }
 
                             })
@@ -146,7 +159,22 @@ class DriverFragment : Fragment() {
                     })
                 }
             }
+            override fun onGeoQueryReady() {
+                if(isFound==false){
+                    val temp=radius+0.5
+                    if(radius<3.5) {
+                        findCustomers(temp)
+                    }
+                    if(radius>=3.5){
 
+                        activity!!.runOnUiThread(Runnable {
+                            val notFoundText=root!!.findViewById(R.id.notFoundTextView) as TextView
+                            notFoundText.text="Nie znaleziono klienta w poblizu"
+                        })
+                    }
+
+                }
+            }
             override fun onKeyMoved(key: String?, location: GeoLocation?) {
                 Log.d("znaleziono",key)
             }
@@ -162,6 +190,9 @@ class DriverFragment : Fragment() {
         })
 
     }
+
+
+
     inner class GetRoute(val url: String) : AsyncTask<Void, Void, ForReturn>() {
 
 

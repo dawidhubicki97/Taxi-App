@@ -42,16 +42,16 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/trafficTextView"
-            android:layout_marginTop="174dp"
+            android:layout_marginTop="224dp"
             android:layout_alignParentTop="true" android:layout_alignParentStart="true"
-            android:layout_marginStart="141dp" android:textColor="@android:color/holo_green_light"
+            android:layout_marginStart="138dp" android:textColor="@android:color/holo_green_light"
             android:textSize="18sp"
-            />
+    />
     <TextView
             android:text="Oczekiwanie na potwierdzenie kierowcy"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/infoTextView"
-            android:layout_marginTop="215dp"
-            android:layout_alignParentStart="true" android:layout_marginStart="188dp"
-            android:layout_alignParentTop="true" android:visibility="invisible"/>
+            android:layout_marginTop="293dp"
+            android:layout_alignParentStart="true" android:layout_marginStart="20dp"
+            android:layout_alignParentTop="true" android:visibility="invisible" android:textSize="24sp"/>
 </RelativeLayout>

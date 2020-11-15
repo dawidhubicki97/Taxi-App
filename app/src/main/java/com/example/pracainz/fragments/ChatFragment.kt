@@ -89,15 +89,15 @@ class ChatFragment : Fragment() {
         val ref=FirebaseDatabase.getInstance().getReference("/OrdersInProgress/"+messagesRef+"/messages")
         ref.addChildEventListener(object :ChildEventListener{
             override fun onCancelled(error: DatabaseError) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
             }
 
             override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
             }
 
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
             }
 
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
@@ -115,7 +115,7 @@ class ChatFragment : Fragment() {
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
             }
 
         })

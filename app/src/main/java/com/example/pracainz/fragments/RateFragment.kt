@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RatingBar
+import android.widget.Toast
 
 import com.example.pracainz.R
 import com.example.pracainz.models.OrdersInProgress
@@ -47,6 +48,11 @@ class RateFragment : Fragment() {
                                 if(orderThis!!.timestamp==timestamp) {
                                     val thisRating = it.child("rating")
                                     thisRating.ref.setValue(p1)
+                                    val fragmentOrders=OrdersFragment()
+                                    activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.container, fragmentOrders)?.commit()
+                                    //val duration = Toast.LENGTH_SHORT
+                                    //val toast = Toast.makeText(activity, "Dziekujemy za ocene", duration)
+                                    //toast.show()
                                 }
                             }
                         }
