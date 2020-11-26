@@ -97,8 +97,30 @@ class RouteFragment : Fragment() {
             distanceTextView.visibility=View.INVISIBLE
             trafficTextView.visibility=View.INVISIBLE
             infoTextView.visibility=View.VISIBLE
+            cancelOrderButton.visibility=View.VISIBLE
             //autocomplete_fragment.view!!.visibility=View.INVISIBLE
 
+        }
+        cancelOrderButton.setOnClickListener {
+            val uid= FirebaseAuth.getInstance().uid
+            val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests"+uid)
+            val secondref=FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget"+uid)
+            val thirdref=FirebaseDatabase.getInstance().getReference("/OrderData/"+uid)
+            ref.removeValue()
+            secondref.removeValue()
+            thirdref.removeValue()
+            progressBarRoute.visibility=View.INVISIBLE
+            sendToMapButton.visibility=View.VISIBLE
+            priceTextView.visibility=View.VISIBLE
+            distanceTextView.visibility=View.VISIBLE
+            trafficTextView.visibility=View.VISIBLE
+            infoTextView.visibility=View.INVISIBLE
+            cancelOrderButton.visibility=View.INVISIBLE
+            distance=null
+            traffic=null
+            distanceTextView.text=""
+            priceTextView.text=""
+            trafficTextView.text=""
         }
         Places.initialize(activity!!.applicationContext, "AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ")
         val placesClient = Places.createClient(activity!!.applicationContext)
@@ -171,12 +193,14 @@ class RouteFragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 snapshot.children.forEach {
                     if(it.key==uid){
-                        progressBarRoute.visibility=View.VISIBLE
-                        sendToMapButton.visibility=View.INVISIBLE
-                        priceTextView.visibility=View.INVISIBLE
-                        distanceTextView.visibility=View.INVISIBLE
-                        trafficTextView.visibility=View.INVISIBLE
-                        infoTextView.visibility=View.VISIBLE
+                        //tutaj byl blad
+                        progressBarRoute?.visibility=View.VISIBLE
+                        sendToMapButton?.visibility=View.INVISIBLE
+                        priceTextView?.visibility=View.INVISIBLE
+                        distanceTextView?.visibility=View.INVISIBLE
+                        trafficTextView?.visibility=View.INVISIBLE
+                        infoTextView?.visibility=View.VISIBLE
+                        cancelOrderButton?.visibility=View.VISIBLE
                         //autocomplete_fragment.view!!.visibility=View.INVISIBLE
                     }
                 }
@@ -232,7 +256,7 @@ class RouteFragment : Fragment() {
     }
     fun findRoute(){
         val url=getRouteUrl(myLastLocation!!)
-        Log.d("link",url)
+        Log.d("notestujese",url)
         GetRoute(url).execute()
         Log.d("droga","findRoute")
 

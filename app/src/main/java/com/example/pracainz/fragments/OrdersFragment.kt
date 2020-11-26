@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 import com.example.pracainz.R
@@ -27,14 +28,19 @@ import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.Item
 import kotlinx.android.synthetic.main.chat_from_item.view.*
 import kotlinx.android.synthetic.main.chat_to_item.view.*
+import kotlinx.android.synthetic.main.fragment_end_route.view.*
 import kotlinx.android.synthetic.main.fragment_orders.view.*
 import kotlinx.android.synthetic.main.order_item.view.*
+import java.math.RoundingMode
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
 import java.util.*
 
 
 class OrdersFragment : Fragment() {
     private var root:View?=null
     private var rating:Double?=null
+    private var earnings:Double?=null
     private var ratingCounter=0
     val adapter=GroupAdapter<GroupieViewHolder>()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,11 +53,27 @@ class OrdersFragment : Fragment() {
         return root
     }
 
-    fun listenToOrders(){
+    fun getPrice(): Double? {
+        val value=earnings
+        val df = DecimalFormat("#.##")
+        df.roundingMode = RoundingMode.CEILING
+        Log.d("liczbeczka",df.format(value))
+        return df.format(value).replace(",", ".").toDouble()
+    }
 
+    fun getRating(value:Double): Double? {
+        val df = DecimalFormat("#.##")
+        df.roundingMode = RoundingMode.CEILING
+        return df.format(value).replace(",", ".").toDouble()
+    }
+
+    fun listenToOrders(){
+        earnings=0.0
+        rating=0.0
         val uid= FirebaseAuth.getInstance().uid
         val ref= FirebaseDatabase.getInstance().getReference("users/"+uid+"/orders")
         val orderRecycler=root!!.findViewById(R.id.ordersRecyclerView) as RecyclerView
+        val earningsTextView=root!!.findViewById(R.id.earningsTextView) as TextView
         val orderRatingTextView=root!!.ratingOrdersTextView
         orderRecycler.adapter=adapter
         ref.addValueEventListener(object:ValueEventListener{
@@ -64,9 +86,10 @@ class OrdersFragment : Fragment() {
                     val order = it.getValue(OrdersInProgress::class.java)
                     Log.d("orderinio",order!!.distance.toString())
                     adapter.add(OrderItem(order!!))
-
+                    earnings=earnings!!+ order.price
+                    Log.d("zarobki",earnings.toString())
                     if(order.rating!=null && order.rating!=0.0) {
-                        rating = +order.rating
+                        rating = rating!!+order.rating
                         ratingCounter++
                         Log.d("rejting",rating.toString())
                     }
@@ -86,7 +109,13 @@ class OrdersFragment : Fragment() {
                     }
                 }
                 if(ratingCounter!=0)
-                orderRatingTextView.text="średnia ocena: "+(rating!!/ratingCounter).toString()
+                    if (activity is DriveActivity) {
+                        val temp=rating!! / ratingCounter
+                        orderRatingTextView.text = "Średnia ocena: " + getRating(temp).toString()
+                    }
+                if (activity is DriveActivity) {
+                    earningsTextView.text = "Laczne Zarobki:" + getPrice() + "zł"
+                }
             }
 
         })
@@ -104,14 +133,20 @@ class OrderItem(val order: OrdersInProgress): Item<GroupieViewHolder>(){
     }
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
-        viewHolder.itemView.orderTextView.text="Stawka: "+order.price.toString()
-        viewHolder.itemView.priceDistanceTextView.text="Dystans: "+order.distance.toString()+" "+order.price
+        viewHolder.itemView.orderTextView.text="Stawka: "+order.price.toString()+"zł"
+        viewHolder.itemView.priceDistanceTextView.text="Dystans: "+order.distance.toString()+"m"
+
+        val sdf = SimpleDateFormat("dd/MM/yy hh:mm")
+        val netDate = Date(order.timestamp*1000)
+        val date =sdf.format(netDate)
+        viewHolder.itemView.textViewDate.text=date.toString()
         if(order.rating==0.0){
-            Picasso.get().load(R.drawable.abc_ic_star_black_48dp).into( viewHolder.itemView.imageViewOrderRated)
+            Picasso.get().load(R.drawable.abc_ic_star_half_black_48dp).into( viewHolder.itemView.imageViewOrderRated)
 
         }
         else{
-            Picasso.get().load(R.drawable.abc_ic_star_half_black_48dp).into( viewHolder.itemView.imageViewOrderRated)
+            viewHolder.itemView.textViewRate.text=order.rating.toString()
+            Picasso.get().load(R.drawable.abc_ic_star_black_48dp).into( viewHolder.itemView.imageViewOrderRated)
         }
         val ref= FirebaseDatabase.getInstance().getReference("users/"+order.user)
         ref.addListenerForSingleValueEvent(object:ValueEventListener{

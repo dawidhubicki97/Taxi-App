@@ -10,12 +10,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.xwray.groupie.GroupieViewHolder
 
 import com.example.pracainz.R
 import com.example.pracainz.models.ChatMessage
 import com.example.pracainz.models.OrdersInProgress
+import com.example.pracainz.models.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.xwray.groupie.GroupAdapter
@@ -35,8 +37,8 @@ class ChatFragment : Fragment() {
     val adapter=GroupAdapter<GroupieViewHolder>()
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         root=inflater.inflate(R.layout.fragment_chat, container, false)
-        loadMessages()
         alreadyAdded=true
+        loadMessages()
         val chatButton=root!!.findViewById(R.id.buttonChat) as Button
         val chatEditText=root!!.findViewById(R.id.editTextChat) as EditText
         chatButton.setOnClickListener {
@@ -67,22 +69,53 @@ class ChatFragment : Fragment() {
                             toId = orderinprogress.user
                             messagesRef = it.key
                             fetchMessages()
+                            showPerson()
                             Log.d("ilerazy", "jeden")
                             alreadyAdded=false
                         } else if (orderinprogress!!.user == uid) {
                             toId = orderinprogress.driver
                             messagesRef = it.key
                             fetchMessages()
+                            showPerson()
                             Log.d("ilerazy", "dwa")
                             alreadyAdded=false
                         }
                     }
+                }
+                if(alreadyAdded==true){
+                    val chatButton=root!!.findViewById(R.id.buttonChat) as Button
+                    val chatEditText=root!!.findViewById(R.id.editTextChat) as EditText
+                    val personTextView=root!!.findViewById(R.id.chatPersonTextView) as TextView
+                    val chatRecyclerView=root!!.findViewById(R.id.chatRecyclerView) as RecyclerView
+                    val warningTextView=root!!.findViewById(R.id.warningTextView) as TextView
+                    chatButton.visibility=View.INVISIBLE
+                    chatEditText.visibility=View.INVISIBLE
+                    personTextView.visibility=View.INVISIBLE
+                    chatRecyclerView.visibility=View.INVISIBLE
+                    warningTextView.visibility=View.VISIBLE
                 }
             }
 
         })
 
     }
+
+    fun showPerson(){
+        val personTextView=root!!.findViewById(R.id.chatPersonTextView) as TextView
+        val ref=FirebaseDatabase.getInstance().getReference("/users/"+toId)
+        ref.addListenerForSingleValueEvent(object:ValueEventListener{
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val userfrombase = snapshot.getValue(User::class.java)
+                personTextView.text=userfrombase!!.username+"("+userfrombase.phone+")"
+            }
+
+        })
+    }
+
     fun fetchMessages(){
         val chatRecyclerView=root!!.findViewById(R.id.chatRecyclerView) as RecyclerView
         chatRecyclerView.adapter=adapter

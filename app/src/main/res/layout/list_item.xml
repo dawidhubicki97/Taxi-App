@@ -1,27 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="center_horizontal"
-        android:padding="16dp"
-        xmlns:android="http://schemas.android.com/apk/res/android">
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                   xmlns:tools="http://schemas.android.com/tools"
+                                   android:orientation="vertical"
+                                   android:layout_width="match_parent"
+                                   android:layout_height="wrap_content" android:layout_marginTop="20dp"
+                                   app:cardElevation="2dp"
+                                   app:cardCornerRadius="25dp"
+                                   app:cardBackgroundColor="@color/colorPrimary">
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp">
+        <TextView
+                android:id="@+id/list_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:paddingLeft="16dp"
+                android:text=""
+                android:textStyle="bold" android:layout_marginTop="8dp"
+                android:layout_marginStart="84dp"
+                android:layout_alignParentStart="true" android:layout_alignParentTop="true"/>
 
-    <TextView
-            android:id="@+id/list_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:paddingLeft="16dp"
-            android:text=""
-            android:textStyle="bold"/>
-
-    <TextView
-            android:id="@+id/list_description"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:paddingLeft="16dp"
-            android:text=""/>
-
-</LinearLayout>
+        <TextView
+                android:id="@+id/list_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:paddingLeft="16dp"
+                android:text="" android:layout_marginTop="12dp"
+                android:layout_alignParentStart="true" android:layout_marginStart="87dp"
+                android:layout_below="@+id/list_title"/>
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" app:srcCompat="@drawable/distance" android:id="@+id/imageView2"/>
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

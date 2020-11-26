@@ -40,6 +40,8 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.maps.android.PolyUtil
 import kotlinx.android.synthetic.main.activity_maps.*
+import java.math.RoundingMode
+import java.text.DecimalFormat
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
@@ -127,9 +129,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             mMap.addPolyline(PolylineOptions().addAll(decodedPolyLine))
             mMap.addMarker(MarkerOptions().position(decodedPolyLine.first()).title("Start").icon(BitmapDescriptorFactory.fromResource(R.drawable.starticon)))
             mMap.addMarker(MarkerOptions().position(decodedPolyLine.last()).title("Koniec").icon(BitmapDescriptorFactory.fromResource(R.drawable.finishicon)))
-
-
-            if(activity is DriveActivity){
+            val buttonEnd=root!!.findViewById(R.id.endRouteButton) as Button
+            buttonEnd.visibility=View.VISIBLE
+                /*
                 val ref= FirebaseDatabase.getInstance().getReference("/users/"+uid+"/lastLocalization")
                 var geofire= GeoFire(ref)
                 var geoQuery=geofire.queryAtLocation(GeoLocation(decodedPolyLine.last().latitude,decodedPolyLine.last().longitude),0.2)
@@ -157,14 +159,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 })
 
                 Log.d("aktiwiti","driver")
-                val buttonEnd=root!!.findViewById(R.id.endRouteButton) as Button
-                buttonEnd.visibility=View.VISIBLE
+*/
                 buttonEnd.setOnClickListener {
                     val builder = AlertDialog.Builder(context)
                     builder.setTitle("Potwierdź")
                     builder.setMessage("Czy aby napewno chcesz zakończyć przejazd?")
 
                     builder.setPositiveButton("Tak") { dialog, which ->
+                        Log.d("cotusie","raz")
                         val ref= FirebaseDatabase.getInstance().getReference("/OrdersInProgress")
                         ref.addValueEventListener(object: ValueEventListener {
                             override fun onCancelled(error: DatabaseError) {
@@ -172,9 +174,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                             }
 
                             override fun onDataChange(snapshot: DataSnapshot) {
+                                Log.d("cotusie","dwa")
+                                ref.removeEventListener(this)
                                 snapshot.children.forEach {
                                     val orderinprogress = it.getValue(OrdersInProgress::class.java)
-                                    if (orderinprogress!!.driver == uid) {
+                                    if (orderinprogress!!.driver == uid || orderinprogress.user == uid  ) {
                                         it.ref.removeValue()
 
                                         val reffourth=FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.driver+"/orders")
@@ -184,6 +188,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                                             }
 
                                             override fun onDataChange(snapshot: DataSnapshot) {
+                                                Log.d("cotusie","trzy")
                                                 var rating=0.0
                                                 var i=0
                                                 snapshot.children.forEach {
@@ -196,19 +201,28 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                                                 refsecond.setValue(orderinprogress)
                                                 val refthird=FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.driver+"/orders").push()
                                                 if(rating>4.0) {
-                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,orderinprogress.price*0.9,orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
+                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,convertDouble(orderinprogress.price*0.9),orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
                                                     refthird.setValue(newOrder)
                                                 }
                                                 if(rating>3.0 && rating <=4) {
-                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,orderinprogress.price*0.8,orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
+                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,convertDouble(orderinprogress.price*0.8),orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
                                                     refthird.setValue(newOrder)
                                                 }
                                                 if(rating <=3) {
-                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,orderinprogress.price*0.7,orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
+                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,convertDouble(orderinprogress.price*0.7),orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
                                                     refthird.setValue(newOrder)
                                                 }
+                                                else{
+                                                    val newOrder=OrdersInProgress(orderinprogress.driver,orderinprogress.user,orderinprogress.startlat,orderinprogress.startlng,orderinprogress.targetlat,orderinprogress.targetlng,convertDouble(orderinprogress.price*0.8),orderinprogress.distance,orderinprogress.rating,orderinprogress.timestamp)
+                                                    refthird.setValue(newOrder)
+                                                }
+                                                var reffifth= FirebaseDatabase.getInstance().getReference("/users/"+orderinprogress.driver+"/status")
+                                                reffifth.setValue(false)
                                                 buttonEnd.visibility=View.INVISIBLE
                                                 mMap.clear()
+                                                buttonEnd.setOnClickListener(null)
+                                                reffourth.removeEventListener(this)
+                                                Log.d("cotusie","cztery")
                                             }
 
                                         })
@@ -227,7 +241,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 }
 
-            }
+
             if(activity is MapsActivity )
             {
                 Log.d("aktiwiti","driver")
@@ -274,7 +288,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
 
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(rzeszow))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(rzeszow, 15.0f))
+    }
+    fun convertDouble(value:Double):Double{
+    val df = DecimalFormat("#.##")
+    df.roundingMode = RoundingMode.CEILING
+    Log.d("liczbeczka",df.format(value))
+    return df.format(value).replace(",", ".").toDouble()
     }
     @SuppressLint("MissingPermission")
     private fun getLocation(){
@@ -288,14 +308,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         hasGps=locationmanager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         hasNetwork=locationmanager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
         if(hasGps||hasNetwork){
-            if(hasGps) {
-                locationmanager.requestLocationUpdates(
+            if(hasGps) { locationmanager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
                     5000,
                     0F,
                     object : LocationListener {
                         override fun onLocationChanged(location: Location?) {
                             if (location != null) {
+                                locationGps = location
                                 if (activity is DriveActivity) {
                                     var geofiresecond = GeoFire(refsecond)
                                     geofiresecond.setLocation(
@@ -312,7 +332,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         }
 
                         override fun onStatusChanged(p0: String?, p1: Int, p2: Bundle?) {
-                            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
                         }
 
                         override fun onProviderEnabled(p0: String?) {
@@ -334,6 +354,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         LocationListener {
                         override fun onLocationChanged(location: Location?) {
                             if (location != null) {
+                                locationNetwork=location
                                 if (activity is DriveActivity) {
                                     var geofiresecond = GeoFire(refsecond)
                                     geofiresecond.setLocation(

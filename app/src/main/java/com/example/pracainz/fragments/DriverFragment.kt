@@ -21,6 +21,7 @@ import com.example.pracainz.models.*
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
 import com.firebase.geofire.GeoQueryEventListener
+import com.firebase.geofire.LocationCallback
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
@@ -34,6 +35,7 @@ import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.Item
 import kotlinx.android.synthetic.main.fragment_driver.*
 import kotlinx.android.synthetic.main.fragment_route.*
+import kotlinx.android.synthetic.main.list_item.view.*
 import kotlinx.android.synthetic.main.route_item.view.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -43,7 +45,7 @@ class DriverFragment : Fragment() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var linearLayoutManager: LinearLayoutManager
     private var myLastLocation:LocationModel?=null
-    private lateinit var driverAdapter: RecyclerAdapter
+    var adapter=GroupAdapter<GroupieViewHolder>()
     private var distance:Int?=null
     private lateinit var driverRecycler:RecyclerView
     private lateinit var distanceToCustomerText:TextView
@@ -59,6 +61,7 @@ class DriverFragment : Fragment() {
         return root
     }
     fun sendToMap(){
+        Log.d("tudoszlo",activity.toString())
         val fragmentMap=MapFragment()
         var bundle= Bundle()
         bundle.putInt("distance",distance!!)
@@ -83,7 +86,7 @@ class DriverFragment : Fragment() {
                     if (orderinprogress!!.driver == uid) {
                         val url=getRouteUrl(orderinprogress)
                         GetRoute(url).execute()
-                        Log.d("notestujese", orderinprogress.driver)
+                        Log.d("notestujese", url)
                     }
                 }
             }
@@ -91,7 +94,7 @@ class DriverFragment : Fragment() {
         })
     }
     private fun getRouteUrl(orderinprogress:OrdersInProgress):String{
-        return "https://maps.googleapis.com/maps/api/directions/json?origin=${orderinprogress.startlat},${orderinprogress.startlng}&destination=${orderinprogress?.targetlat},${orderinprogress?.targetlng}&mode=transit&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ"
+        return "https://maps.googleapis.com/maps/api/directions/json?origin=${orderinprogress.startlat},${orderinprogress.startlng}&destination=${orderinprogress?.targetlat},${orderinprogress?.targetlng}&departure_time=now&key=AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ"
     }
     @SuppressLint("MissingPermission")
     fun getMyLastLocation() {
@@ -108,14 +111,13 @@ class DriverFragment : Fragment() {
         linearLayoutManager = LinearLayoutManager(context)
         driverRecycler=root!!.findViewById(R.id.driverRecyclerView) as RecyclerView
         driverRecycler.layoutManager = linearLayoutManager
-        driverAdapter = RecyclerAdapter()
+        driverRecycler.adapter=adapter
         data= ArrayList()
         distanceToCustomerText=root!!.findViewById(R.id.distanceToCustomerTextView) as TextView
         findCustomers(0.5)
     }
 
     fun findCustomers(radius:Double){
-
         val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests")
         var isFound=false
         var geofire= GeoFire(ref)
@@ -124,9 +126,19 @@ class DriverFragment : Fragment() {
 
 
             override fun onKeyEntered(key: String?, location: GeoLocation?) {
+                if(adapter.groupCount>0) {
+                    for (i in 0..adapter.groupCount-1) {
+                        Log.d("ocochodzi",i.toString())
+                        adapter.removeGroup(0)
+                    }
+                    if(adapter.groupCount==1)
+                        adapter.removeGroup(0)
+                }
                 Log.d("zobaczmyradius","znalazlo w: "+radius.toString())
                 isFound=true
                 activity!!.runOnUiThread {
+                    val distanceToCustomerTextView=root!!.findViewById(R.id.distanceToCustomerTextView) as TextView
+                    distanceToCustomerTextView.text="Klient jest w odleglosci ponizej:"+radius.toString()+"km"
                     val refsecond= FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget/"+key+"/name")
                     refsecond.addListenerForSingleValueEvent(object:ValueEventListener{
                         override fun onCancelled(error: DatabaseError) {
@@ -144,12 +156,7 @@ class DriverFragment : Fragment() {
                                 override fun onDataChange(snapshot: DataSnapshot) {
                                     val orderData=snapshot.getValue(OrderData::class.java)
                                     var availabledrive=AvailableDrive(name!!,key!!,location!!.latitude,location!!.longitude,orderData!!.price,orderData!!.distance)
-
-                                    data.add(availabledrive)
-                                    driverAdapter.submitList(data)
-                                    driverRecycler.adapter=driverAdapter
-                                    distanceToCustomerText.text="Odleglosc od klienta ponizej: "+radius + "km"
-
+                                    adapter.add(RouteItem(availabledrive))
                                 }
 
                             })
@@ -158,11 +165,19 @@ class DriverFragment : Fragment() {
 
                     })
                 }
+                adapter.setOnItemClickListener { item, view ->
+                    Log.d("czytutaj","listener")
+                    val thisitem=item as RouteItem
+                    putOrderIntoDatabase(thisitem.availableDrive)
+
+                }
+
             }
             override fun onGeoQueryReady() {
                 if(isFound==false){
                     val temp=radius+0.5
                     if(radius<3.5) {
+                        geoQuery.removeAllListeners()
                         findCustomers(temp)
                     }
                     if(radius>=3.5){
@@ -170,6 +185,14 @@ class DriverFragment : Fragment() {
                         activity!!.runOnUiThread(Runnable {
                             val notFoundText=root!!.findViewById(R.id.notFoundTextView) as TextView
                             notFoundText.text="Nie znaleziono klienta w poblizu"
+                            val distanceToCustomerTextView=root!!.findViewById(R.id.distanceToCustomerTextView) as TextView
+                            distanceToCustomerTextView.text=""
+                            for (i in 0..adapter.groupCount-1) {
+                                Log.d("ocochodzi",i.toString())
+                                adapter.removeGroup(0)
+                            }
+                            if(adapter.groupCount==1)
+                                adapter.removeGroup(0)
                         })
                     }
 
@@ -180,6 +203,8 @@ class DriverFragment : Fragment() {
             }
 
             override fun onKeyExited(key: String?) {
+                geoQuery.removeAllListeners()
+                findCustomers(radius)
                 Log.d("znaleziono",key)
             }
 
@@ -190,6 +215,74 @@ class DriverFragment : Fragment() {
         })
 
     }
+
+
+    fun putOrderIntoDatabase(availableDrive: AvailableDrive){
+        Log.d("czytutaj","putOrderIntoDatabase")
+
+        var firstlocation:GeoLocation?=null
+        var secondlocation:GeoLocation
+        val uid= FirebaseAuth.getInstance().uid
+        var ref= FirebaseDatabase.getInstance().getReference("/OrderRequests")
+        var geoFire = GeoFire(ref)
+        geoFire.getLocation(availableDrive.user,object: LocationCallback {
+            override fun onLocationResult(key: String?, location: GeoLocation?) {
+                if(location!=null) {
+                    firstlocation = location
+                    geoFire.removeLocation(availableDrive.user,GeoFire.CompletionListener { key, error ->
+
+                    })
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError?) {
+
+            }
+
+        })
+
+        var refsecond= FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget")
+        var geoFiresecond = GeoFire(refsecond)
+        geoFiresecond.getLocation(availableDrive.user,object: LocationCallback {
+            override fun onLocationResult(key: String?, location: GeoLocation?) {
+                if(location!=null) {
+                    geoFiresecond.removeLocation(availableDrive.user,GeoFire.CompletionListener { key, error ->
+                        secondlocation = location
+                        var refthird= FirebaseDatabase.getInstance().getReference("/OrderData/"+key)
+                        refthird.addListenerForSingleValueEvent(object:ValueEventListener{
+                            override fun onCancelled(error: DatabaseError) {
+                                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                            }
+
+                            override fun onDataChange(snapshot: DataSnapshot) {
+
+                                val orderdata=snapshot.getValue(OrderData::class.java)
+
+                                refsecond = FirebaseDatabase.getInstance().getReference("/OrdersInProgress").push()
+                                var orderinprogress = OrdersInProgress(uid!!, key!!, firstlocation!!.latitude,firstlocation!!.longitude, secondlocation!!.latitude,secondlocation!!.longitude,orderdata!!.price,orderdata.distance,0.0,System.currentTimeMillis()/1000)
+                                refsecond.setValue(orderinprogress)
+                                refthird.removeValue()
+                                var reffourth= FirebaseDatabase.getInstance().getReference("/users/"+uid+"/status")
+                                reffourth.setValue(true)
+
+                            }
+
+                        })
+
+                    })
+
+
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError?) {
+
+            }
+
+        })
+
+    }
+
 
 
 
@@ -235,12 +328,14 @@ class DriverFragment : Fragment() {
 
 class RouteItem(val availableDrive: AvailableDrive): Item<GroupieViewHolder>(){
     override fun getLayout(): Int {
-        return R.layout.route_item
+        return R.layout.list_item
     }
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
         Log.d("znaleziono","doszlotu")
-        viewHolder.itemView.routeTextView.setText(availableDrive.user)
+        viewHolder.itemView.list_title.text=availableDrive.name
+        viewHolder.itemView.list_description.text="Dystans: "+availableDrive.distance+ "m Stawka: "+ availableDrive.price+"zł"
+
     }
 
 

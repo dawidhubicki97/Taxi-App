@@ -95,6 +95,9 @@ constructor(itemView: View): RecyclerView.ViewHolder(itemView){
                                     var orderinprogress = OrdersInProgress(uid!!, key!!, firstlocation!!.latitude,firstlocation!!.longitude, secondlocation!!.latitude,secondlocation!!.longitude,orderdata!!.price,orderdata.distance,0.0,System.currentTimeMillis()/1000)
                                     refsecond.setValue(orderinprogress)
                                     refthird.removeValue()
+                                    var reffourth= FirebaseDatabase.getInstance().getReference("/users/"+uid+"/status")
+                                    reffourth.setValue(true)
+
                                 }
 
                             })

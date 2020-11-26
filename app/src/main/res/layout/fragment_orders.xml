@@ -13,5 +13,11 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/ratingOrdersTextView"
-            android:layout_marginTop="80dp"/>
+            android:layout_marginTop="80dp" android:textStyle="bold" android:textSize="16sp"
+            android:textColor="@color/colorPrimary"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/earningsTextView" android:layout_marginTop="80dp"
+            android:layout_marginLeft="150dp" android:textStyle="bold" android:textSize="16sp"
+            android:textColor="@color/colorPrimary"/>
 </FrameLayout>
