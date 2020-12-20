@@ -32,7 +32,7 @@ class RateFragment : Fragment() {
         val uid= FirebaseAuth.getInstance().uid
         timestamp=arguments!!.getLong("timestamp")
         val ratingBar=root!!.findViewById<RatingBar>(R.id.ratingBarAfter)
-        ratingBar.setOnRatingBarChangeListener (object:RatingBar.OnRatingBarChangeListener{
+        ratingBar.onRatingBarChangeListener = object:RatingBar.OnRatingBarChangeListener{
             override fun onRatingChanged(p0: RatingBar?, p1: Float, p2: Boolean) {
                 val ref= FirebaseDatabase.getInstance().getReference("users")
                 ref.addValueEventListener(object:ValueEventListener{
@@ -48,21 +48,19 @@ class RateFragment : Fragment() {
                                 if(orderThis!!.timestamp==timestamp) {
                                     val thisRating = it.child("rating")
                                     thisRating.ref.setValue(p1)
-                                    val fragmentOrders=OrdersFragment()
-                                    activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.container, fragmentOrders)?.commit()
-                                    //val duration = Toast.LENGTH_SHORT
-                                    //val toast = Toast.makeText(activity, "Dziekujemy za ocene", duration)
-                                    //toast.show()
+
                                 }
                             }
                         }
+                        val fragmentOrders=OrdersFragment()
+                        activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.container, fragmentOrders)?.commit()
                     }
 
                 })
 
             }
 
-        })
+        }
         return root
 
     }

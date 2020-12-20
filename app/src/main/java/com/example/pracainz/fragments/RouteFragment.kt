@@ -3,6 +3,7 @@ package com.example.pracainz.fragments
 
 import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
+import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -60,6 +61,7 @@ class RouteFragment : Fragment() {
     private var targetName:String?=null
     private var myLastLocation:LocationModel?=null
     private var traffic:String?=null
+    private var autocompleteFragment:AutocompleteSupportFragment ?=null
     private var root:View?=null
     private var alreadyHaveOrder=false
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -73,6 +75,8 @@ class RouteFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        autocompleteFragment = childFragmentManager.findFragmentById(R.id.autocomplete_fragment) as? AutocompleteSupportFragment
+        autocompleteFragment?.view!!.visibility=View.INVISIBLE
         sendToMapButton.setOnClickListener{
             Log.d("droga","sendToMapButton")
             val uid= FirebaseAuth.getInstance().uid
@@ -98,24 +102,25 @@ class RouteFragment : Fragment() {
             trafficTextView.visibility=View.INVISIBLE
             infoTextView.visibility=View.VISIBLE
             cancelOrderButton.visibility=View.VISIBLE
-            //autocomplete_fragment.view!!.visibility=View.INVISIBLE
+            autocompleteFragment?.view!!.visibility=View.INVISIBLE
 
         }
         cancelOrderButton.setOnClickListener {
             val uid= FirebaseAuth.getInstance().uid
-            val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests"+uid)
-            val secondref=FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget"+uid)
+            val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests/"+uid)
+            val secondref=FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget/"+uid)
             val thirdref=FirebaseDatabase.getInstance().getReference("/OrderData/"+uid)
             ref.removeValue()
             secondref.removeValue()
             thirdref.removeValue()
             progressBarRoute.visibility=View.INVISIBLE
-            sendToMapButton.visibility=View.VISIBLE
+            sendToMapButton.visibility=View.INVISIBLE
             priceTextView.visibility=View.VISIBLE
             distanceTextView.visibility=View.VISIBLE
             trafficTextView.visibility=View.VISIBLE
             infoTextView.visibility=View.INVISIBLE
             cancelOrderButton.visibility=View.INVISIBLE
+            autocompleteFragment?.view!!.visibility=View.VISIBLE
             distance=null
             traffic=null
             distanceTextView.text=""
@@ -124,11 +129,9 @@ class RouteFragment : Fragment() {
         }
         Places.initialize(activity!!.applicationContext, "AIzaSyAAfIfjV2D8akbv2jCyPoaAfSKsD85TepQ")
         val placesClient = Places.createClient(activity!!.applicationContext)
-        val autocompleteFragment = childFragmentManager.findFragmentById(R.id.autocomplete_fragment) as? AutocompleteSupportFragment
-        val northEast = LatLng(50.077474, 22.098360)
-        val southWest = LatLng(49.932459, 21.875340)
-        val border=RectangularBounds.newInstance(southWest, northEast)
-        autocompleteFragment!!.setLocationRestriction(border)
+
+        autocompleteFragment!!.setHint("Kliknij tutaj i podaj cel podróży")
+        autocompleteFragment!!.view!!.setBackground(resources.getDrawable(R.drawable.rounded_login_register_text))
         autocompleteFragment!!.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME,Place.Field.LAT_LNG))
         autocompleteFragment!!.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
@@ -181,6 +184,8 @@ class RouteFragment : Fragment() {
                         Log.d("notestujese", orderinprogress.user)
                     }
                 }
+                if(alreadyHaveOrder==false)
+                autocompleteFragment?.view?.visibility=View.VISIBLE
             }
 
         })
@@ -252,7 +257,16 @@ class RouteFragment : Fragment() {
             .addOnSuccessListener { location : Location? ->
                 val newLocation=LocationModel(location!!.longitude,location!!.latitude)
                 myLastLocation=newLocation
+                Log.d("wymiary",(myLastLocation!!.latitude+0.08).toString())
+                Log.d("wymiary",(myLastLocation!!.longitude+0.08).toString())
+                Log.d("wymiary",(myLastLocation!!.latitude-0.08).toString())
+                Log.d("wymiary",(myLastLocation!!.longitude-0.08).toString())
+                val northEast = LatLng(myLastLocation!!.latitude+0.08, myLastLocation!!.longitude+0.08)
+                val southWest = LatLng(myLastLocation!!.latitude-0.08, myLastLocation!!.longitude-0.08)
+                val border=RectangularBounds.newInstance(southWest, northEast)
+                autocompleteFragment!!.setLocationRestriction(border)
             }
+
     }
     fun findRoute(){
         val url=getRouteUrl(myLastLocation!!)

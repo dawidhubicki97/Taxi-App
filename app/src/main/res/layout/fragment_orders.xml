@@ -8,16 +8,16 @@
 
     <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
-            android:layout_height="626dp" android:id="@+id/ordersRecyclerView"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" android:layout_marginTop="100dp"/>
+            android:layout_height="546dp" android:id="@+id/ordersRecyclerView"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" android:layout_marginTop="110dp"/>
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/ratingOrdersTextView"
-            android:layout_marginTop="80dp" android:textStyle="bold" android:textSize="16sp"
+            android:layout_marginTop="80dp" android:textStyle="bold" android:textSize="17sp"
             android:textColor="@color/colorPrimary"/>
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/earningsTextView" android:layout_marginTop="80dp"
-            android:layout_marginLeft="150dp" android:textStyle="bold" android:textSize="16sp"
+            android:layout_marginLeft="170dp" android:textStyle="bold" android:textSize="17sp"
             android:textColor="@color/colorPrimary"/>
 </FrameLayout>

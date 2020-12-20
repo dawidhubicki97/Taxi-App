@@ -11,59 +11,79 @@
     <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp">
 
 
-
         <TextView
                 android:text="TextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:id="@+id/orderTextView"
-                app:layout_constraintStart_toStartOf="@+id/priceDistanceTextView"
-                app:layout_constraintEnd_toEndOf="@+id/priceDistanceTextView"
-                app:layout_constraintHorizontal_bias="1.0" android:layout_marginStart="0dp"
-                android:layout_marginTop="19dp"
-                app:layout_constraintTop_toBottomOf="@+id/priceDistanceTextView"
-                android:layout_below="@+id/textViewOrderDriver" android:layout_alignStart="@+id/textViewOrderDriver"/>
+                android:layout_marginTop="-2dp"
+                android:layout_marginStart="4dp"
+                android:layout_toEndOf="@+id/distanceImageView" android:layout_alignTop="@+id/distanceImageView"
+                android:textSize="16sp"/>
         <TextView
                 android:text="TextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:id="@+id/priceDistanceTextView"
-                app:layout_constraintStart_toStartOf="parent"
-                android:layout_marginStart="1dp" app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginTop="21dp" android:layout_below="@+id/textViewOrderUser"
-                android:layout_alignStart="@+id/textViewOrderUser"/>
+                android:layout_marginTop="-1dp"
+                android:layout_marginStart="5dp" android:layout_toEndOf="@+id/priceImageView"
+                android:layout_alignTop="@+id/priceImageView" android:textSize="16sp"/>
         <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" app:srcCompat="@android:drawable/btn_star_big_on"
-                android:id="@+id/imageViewOrderRated" app:layout_constraintStart_toEndOf="@+id/textViewOrderDriver"
-                android:layout_marginStart="21dp" android:layout_marginTop="-29dp"
-                app:layout_constraintTop_toTopOf="@+id/textViewOrderUser"
-                android:layout_toEndOf="@+id/textViewOrderDriver" android:layout_alignTop="@+id/textViewOrderDriver"/>
+                android:layout_width="30dp"
+                android:layout_height="30dp" app:srcCompat="@android:drawable/btn_star_big_on"
+                android:id="@+id/imageViewOrderRated" android:layout_marginTop="-3dp"
+                android:layout_marginStart="98dp" android:layout_toEndOf="@+id/textViewDate"
+                android:layout_alignTop="@+id/textViewDate"/>
         <TextView
                 android:text="TextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/textViewOrderUser" app:layout_constraintStart_toEndOf="@+id/priceDistanceTextView"
-                android:layout_marginStart="31dp" android:layout_marginTop="47dp"
-                app:layout_constraintTop_toTopOf="parent" android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true"/>
+                android:id="@+id/textViewOrderUser" android:layout_marginTop="-2dp"
+                android:layout_marginStart="3dp"
+                android:layout_toEndOf="@+id/userImageView" android:layout_alignTop="@+id/userImageView"
+                android:textSize="16sp"/>
         <TextView
                 android:text="TextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/textViewOrderDriver" app:layout_constraintStart_toEndOf="@+id/orderTextView"
-                android:layout_marginStart="39dp" android:layout_marginTop="1dp"
-                app:layout_constraintTop_toBottomOf="@+id/textViewOrderUser"
-                android:layout_toEndOf="@+id/textViewOrderUser" android:layout_alignTop="@+id/textViewOrderUser"/>
+                android:id="@+id/textViewOrderDriver" android:layout_marginStart="4dp"
+                android:layout_marginTop="-1dp"
+                android:layout_toEndOf="@+id/driverImageView" android:layout_alignTop="@+id/driverImageView"
+                android:textSize="16sp"/>
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:id="@+id/textViewRate"
-                android:layout_marginTop="4dp" android:layout_below="@+id/imageViewOrderRated"
-                android:layout_marginStart="12dp" android:layout_alignStart="@+id/imageViewOrderRated"/>
+                android:textStyle="bold" android:layout_marginStart="6dp"
+                android:layout_marginTop="-24dp" android:layout_below="@+id/imageViewOrderRated"
+                android:layout_toEndOf="@+id/imageViewOrderRated" android:textSize="16sp"/>
         <TextView
                 android:text="TextView"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:id="@+id/textViewDate" android:layout_marginStart="1dp"
-                android:layout_alignStart="@+id/textViewOrderUser" android:layout_marginTop="14dp"
-                android:layout_alignParentTop="true" android:textStyle="bold"/>
+                android:layout_height="wrap_content" android:id="@+id/textViewDate"
+                android:textStyle="bold" android:layout_marginTop="8dp" android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true" android:layout_marginStart="28dp" android:textSize="18sp"/>
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" app:srcCompat="@drawable/distancesmall"
+                android:id="@+id/distanceImageView" android:layout_marginTop="-1dp"
+                android:layout_marginStart="81dp" android:layout_toEndOf="@+id/textViewOrderUser"
+                android:layout_alignTop="@+id/userImageView"/>
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" app:srcCompat="@drawable/user" android:id="@+id/userImageView"
+                android:layout_marginTop="18dp"
+                android:layout_alignParentStart="true" android:layout_marginStart="24dp"
+                android:layout_below="@+id/textViewDate"/>
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" app:srcCompat="@drawable/vehicle"
+                android:id="@+id/driverImageView" android:layout_marginTop="17dp"
+                android:layout_marginStart="1dp"
+                android:layout_below="@+id/userImageView" android:layout_alignStart="@+id/userImageView"/>
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" app:srcCompat="@drawable/wallet" android:id="@+id/priceImageView"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="0dp" android:layout_alignStart="@+id/distanceImageView"
+                android:layout_below="@+id/distanceImageView"/>
     </RelativeLayout>
 
 

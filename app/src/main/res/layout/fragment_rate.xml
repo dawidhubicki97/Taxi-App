@@ -8,6 +8,14 @@
     <RatingBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/ratingBarAfter"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+
+            android:theme="@style/RatingBar"/>
+    <TextView
+            android:text="Oceń swój przejazd"
+            android:textColor="@color/colorPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textView" android:textSize="21sp"
+            android:textStyle="bold" android:layout_marginTop="200dp" android:layout_marginLeft="100dp"/>
 
 </FrameLayout>

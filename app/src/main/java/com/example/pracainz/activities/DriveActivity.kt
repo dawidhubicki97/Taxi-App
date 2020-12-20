@@ -76,6 +76,9 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
             replaceFragment(MapFragment())
     }
 
+    override fun onBackPressed() {
+
+    }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -118,6 +121,7 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
 
     fun replaceFragment(fragment: Fragment, routeid:Int?=null) {
         this.fragment=fragment
+        supportFragmentManager.popBackStack()
         val fragmentTransaction = supportFragmentManager.beginTransaction()
         if(routeid!=null){
             var bundle= Bundle()
@@ -185,10 +189,15 @@ class DriveActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
     fun logout(){
             var instance=FirebaseAuth.getInstance().signOut()
             val intent = Intent(this, MainActivity::class.java)
+            intent.flags= Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
-            finish()
+            val con= FirebaseDatabase.getInstance().getReference("users/"+uid+"/isOnline")
+            con.setValue(false)
+            killActivity()
     }
-
+    fun killActivity() {
+    finish()
+    }
 
     override fun onStop() {
         val uid= FirebaseAuth.getInstance().uid

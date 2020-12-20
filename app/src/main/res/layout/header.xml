@@ -2,11 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="match_parent"
-              android:layout_height="250dp"
+              android:layout_height="200dp"
 android:background="@color/c3">
-
     <de.hdodenhof.circleimageview.CircleImageView
-            android:src="@drawable/herbrzeszowadwa"
+            android:src="@drawable/carcircle"
             android:layout_width="120dp"
             android:elevation="6dp"
             android:layout_height="120dp"
@@ -15,4 +14,5 @@ android:background="@color/c3">
             android:layout_gravity="center"
 
     />
+
 </LinearLayout>

@@ -7,19 +7,20 @@
              tools:context=".fragments.ChatFragment" android:orientation="horizontal">
     <androidx.recyclerview.widget.RecyclerView
             android:layout_width="366dp"
-            android:layout_height="474dp"
+            android:layout_height="477dp"
             android:id="@+id/chatRecyclerView"
 
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             android:layout_marginTop="100dp"/>
     <EditText
-            android:layout_width="246dp"
+            android:layout_width="298dp"
             android:layout_height="87dp"
             android:inputType="textPersonName"
             android:ems="10"
             android:id="@+id/editTextChat"
+            android:background="@drawable/rounded_login_register_text"
             android:layout_gravity="bottom|left"
-            />
+            android:visibility="invisible"/>
     <Button
             android:text="Wyslij"
             android:layout_width="98dp"
@@ -27,16 +28,17 @@
             android:id="@+id/buttonChat"
             android:background="@drawable/rounded_button"
             android:layout_gravity="bottom|right"
-    />
+            android:visibility="invisible"/>
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/chatPersonTextView" android:layout_marginTop="50dp"
-            android:textSize="24sp"/>
+            android:textSize="24sp" android:textColor="@color/colorPrimary"/>
     <TextView
             android:text="Brak aktualnego zamówienia"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/warningTextView" android:layout_marginTop="200dp"
-            android:layout_marginLeft="30dp" android:visibility="invisible" android:textSize="24sp"/>
+            android:layout_marginLeft="30dp" android:visibility="invisible" android:textSize="24sp"
+            android:textColor="@color/colorPrimary"/>
 
 
 </FrameLayout>

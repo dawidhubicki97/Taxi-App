@@ -15,7 +15,7 @@
     <Button
             android:text="Zakończ kurs"
             android:layout_width="wrap_content"
-            android:background="@drawable/rounded_button"
+            android:background="@drawable/end_route_button"
             android:layout_height="wrap_content" android:id="@+id/endRouteButton"
             android:layout_gravity="top|right" android:visibility="invisible"/>
 

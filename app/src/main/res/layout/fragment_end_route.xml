@@ -9,9 +9,11 @@
     <RatingBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/ratingBar"
-    android:layout_gravity="center"/>
+    android:layout_gravity="center"
+            android:theme="@style/RatingBar"/>
     <TextView
             android:text="Trasa Zakończona"
+            android:textColor="@color/colorPrimary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/textViewEndRoute" android:textSize="30sp"
             android:layout_marginTop="100dp"/>

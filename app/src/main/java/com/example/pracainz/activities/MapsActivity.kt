@@ -21,6 +21,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import kotlinx.android.synthetic.main.activity_maps.*
 
+
+
+
 class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
 
@@ -63,6 +66,9 @@ class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             replaceFragment(MapFragment())
     }
 
+    override fun onBackPressed() {
+
+    }
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
         Log.d("klik","cos")
         when(p0.itemId){
@@ -91,6 +97,7 @@ class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     fun logout(){
         var instance= FirebaseAuth.getInstance().signOut()
         val intent = Intent(this, MainActivity::class.java)
+        intent.flags= Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
     }
@@ -98,6 +105,7 @@ class MapsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     fun replaceFragment(fragment: Fragment, routeid:Int?=null) {
         this.fragment=fragment
         val fragmentTransaction = supportFragmentManager.beginTransaction()
+        supportFragmentManager.popBackStack()
         if(routeid!=null){
             var bundle= Bundle()
             bundle.putInt("routeid",routeid)

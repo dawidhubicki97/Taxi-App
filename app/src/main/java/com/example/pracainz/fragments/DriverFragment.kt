@@ -50,7 +50,9 @@ class DriverFragment : Fragment() {
     private lateinit var driverRecycler:RecyclerView
     private lateinit var distanceToCustomerText:TextView
     private var decodedPoly:String?=null
+    private var clickedToMap=false
     private var root:View?=null
+    private var testCounter=0
     private lateinit var data: ArrayList<AvailableDrive>
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         retainInstance=true
@@ -117,7 +119,11 @@ class DriverFragment : Fragment() {
         findCustomers(0.5)
     }
 
+
+
     fun findCustomers(radius:Double){
+        testCounter=testCounter+1
+        Log.d("licznik",testCounter.toString())
         val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests")
         var isFound=false
         var geofire= GeoFire(ref)
@@ -126,19 +132,20 @@ class DriverFragment : Fragment() {
 
 
             override fun onKeyEntered(key: String?, location: GeoLocation?) {
-                if(adapter.groupCount>0) {
-                    for (i in 0..adapter.groupCount-1) {
-                        Log.d("ocochodzi",i.toString())
-                        adapter.removeGroup(0)
-                    }
-                    if(adapter.groupCount==1)
-                        adapter.removeGroup(0)
-                }
-                Log.d("zobaczmyradius","znalazlo w: "+radius.toString())
+                Log.d("znaleziono","znalazlo w: "+radius.toString())
                 isFound=true
                 activity!!.runOnUiThread {
-                    val distanceToCustomerTextView=root!!.findViewById(R.id.distanceToCustomerTextView) as TextView
-                    distanceToCustomerTextView.text="Klient jest w odleglosci ponizej:"+radius.toString()+"km"
+                    if (adapter.groupCount > 0) {
+                        for (i in 0..adapter.groupCount - 1) {
+                            Log.d("znaleziono", i.toString())
+                            adapter.removeGroup(0)
+                        }
+                        if (adapter.groupCount == 1)
+                            adapter.removeGroup(0)
+                    }
+                    val distanceToCustomerTextView = root!!.findViewById(R.id.distanceToCustomerTextView) as TextView
+                    distanceToCustomerTextView.text = "Klient jest w odleglosci ponizej:" + radius.toString() + "km"
+                }
                     val refsecond= FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget/"+key+"/name")
                     refsecond.addListenerForSingleValueEvent(object:ValueEventListener{
                         override fun onCancelled(error: DatabaseError) {
@@ -164,9 +171,10 @@ class DriverFragment : Fragment() {
                         }
 
                     })
-                }
+
                 adapter.setOnItemClickListener { item, view ->
-                    Log.d("czytutaj","listener")
+                    Log.d("znaleziono","listener")
+                    clickedToMap=true
                     val thisitem=item as RouteItem
                     putOrderIntoDatabase(thisitem.availableDrive)
 
@@ -174,6 +182,7 @@ class DriverFragment : Fragment() {
 
             }
             override fun onGeoQueryReady() {
+                Log.d("znaleziono","onGeoQueryReady")
                 if(isFound==false){
                     val temp=radius+0.5
                     if(radius<3.5) {
@@ -188,7 +197,7 @@ class DriverFragment : Fragment() {
                             val distanceToCustomerTextView=root!!.findViewById(R.id.distanceToCustomerTextView) as TextView
                             distanceToCustomerTextView.text=""
                             for (i in 0..adapter.groupCount-1) {
-                                Log.d("ocochodzi",i.toString())
+                                Log.d("znaleziono",i.toString())
                                 adapter.removeGroup(0)
                             }
                             if(adapter.groupCount==1)
@@ -199,13 +208,17 @@ class DriverFragment : Fragment() {
                 }
             }
             override fun onKeyMoved(key: String?, location: GeoLocation?) {
-                Log.d("znaleziono",key)
+                Log.d("znaleziono","onKeyMoved")
             }
 
             override fun onKeyExited(key: String?) {
-                geoQuery.removeAllListeners()
-                findCustomers(radius)
-                Log.d("znaleziono",key)
+                Log.d("kliked",clickedToMap.toString())
+               if (clickedToMap==false){
+                    isFound=false
+                    geoQuery.removeAllListeners()
+                    findCustomers(0.5)
+                }
+                Log.d("znaleziono","onKeyExited")
             }
 
             override fun onGeoQueryError(error: DatabaseError?) {

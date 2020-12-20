@@ -6,14 +6,16 @@
              tools:context=".fragments.DriverFragment">
     <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
-            android:layout_height="662dp"
+            android:layout_height="597dp"
             android:layout_marginTop="100dp" android:id="@+id/driverRecyclerView"/>
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/distanceToCustomerTextView"
-            android:layout_marginTop="80dp" android:textSize="18sp" android:textColor="@color/colorPrimary"/>
+            android:layout_marginTop="80dp" android:textSize="18sp" android:textColor="@color/colorPrimary"
+            android:textStyle="bold"/>
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/notFoundTextView" android:layout_marginTop="100dp"
-            tools:visibility="visible" android:textSize="18sp" android:textColor="@color/colorPrimary"/>
+            tools:visibility="visible" android:textSize="22sp" android:textColor="@color/colorPrimary"
+            android:textStyle="bold"/>
 </FrameLayout>

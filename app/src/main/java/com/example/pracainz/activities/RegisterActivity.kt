@@ -40,12 +40,16 @@ class RegisterActivity : AppCompatActivity() {
         val phone=phoneTextView.text.toString()
         if(login.isEmpty()||password.isEmpty()||repeatpassword.isEmpty()||phone.isEmpty()) {
 
-            Toast.makeText(this,"Please enter email/password", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this,"Uzupełnij wszystkie pola", Toast.LENGTH_SHORT).show()
             return
 
         }
         if(repeatpassword.equals(password)==false){
             Toast.makeText(this,"Hasła nie są takie same", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if(phone.length>9 || phone.length<9){
+            Toast.makeText(this,"Zła długość telefonu", Toast.LENGTH_SHORT).show()
             return
         }
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(login,password).addOnCompleteListener {

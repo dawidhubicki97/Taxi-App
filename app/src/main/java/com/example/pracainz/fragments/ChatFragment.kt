@@ -53,6 +53,11 @@ class ChatFragment : Fragment() {
     }
 
         fun loadMessages(){
+            val chatButton=root!!.findViewById(R.id.buttonChat) as Button
+            val chatEditText=root!!.findViewById(R.id.editTextChat) as EditText
+            val personTextView=root!!.findViewById(R.id.chatPersonTextView) as TextView
+            val chatRecyclerView=root!!.findViewById(R.id.chatRecyclerView) as RecyclerView
+            val warningTextView=root!!.findViewById(R.id.warningTextView) as TextView
 
         val ref=FirebaseDatabase.getInstance().getReference("/OrdersInProgress")
 
@@ -66,6 +71,8 @@ class ChatFragment : Fragment() {
                     snapshot.children.forEach {
                         val orderinprogress = it.getValue(OrdersInProgress::class.java)
                         if (orderinprogress!!.driver == uid) {
+                            chatEditText.visibility=View.VISIBLE
+                            chatButton.visibility=View.VISIBLE
                             toId = orderinprogress.user
                             messagesRef = it.key
                             fetchMessages()
@@ -73,6 +80,8 @@ class ChatFragment : Fragment() {
                             Log.d("ilerazy", "jeden")
                             alreadyAdded=false
                         } else if (orderinprogress!!.user == uid) {
+                            chatEditText.visibility=View.VISIBLE
+                            chatButton.visibility=View.VISIBLE
                             toId = orderinprogress.driver
                             messagesRef = it.key
                             fetchMessages()
@@ -83,11 +92,7 @@ class ChatFragment : Fragment() {
                     }
                 }
                 if(alreadyAdded==true){
-                    val chatButton=root!!.findViewById(R.id.buttonChat) as Button
-                    val chatEditText=root!!.findViewById(R.id.editTextChat) as EditText
-                    val personTextView=root!!.findViewById(R.id.chatPersonTextView) as TextView
-                    val chatRecyclerView=root!!.findViewById(R.id.chatRecyclerView) as RecyclerView
-                    val warningTextView=root!!.findViewById(R.id.warningTextView) as TextView
+
                     chatButton.visibility=View.INVISIBLE
                     chatEditText.visibility=View.INVISIBLE
                     personTextView.visibility=View.INVISIBLE
@@ -110,7 +115,7 @@ class ChatFragment : Fragment() {
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 val userfrombase = snapshot.getValue(User::class.java)
-                personTextView.text=userfrombase!!.username+"("+userfrombase.phone+")"
+                personTextView.text=userfrombase!!.username+" Telefon: "+userfrombase.phone
             }
 
         })

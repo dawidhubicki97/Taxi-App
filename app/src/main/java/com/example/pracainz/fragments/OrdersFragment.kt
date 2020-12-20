@@ -1,8 +1,12 @@
 package com.example.pracainz.fragments
 
 import android.content.Context
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.StyleSpan
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -114,7 +118,7 @@ class OrdersFragment : Fragment() {
                         orderRatingTextView.text = "Średnia ocena: " + getRating(temp).toString()
                     }
                 if (activity is DriveActivity) {
-                    earningsTextView.text = "Laczne Zarobki:" + getPrice() + "zł"
+                    earningsTextView.text = "Łączne Zarobki:" + getPrice() + "zł"
                 }
             }
 
@@ -133,9 +137,11 @@ class OrderItem(val order: OrdersInProgress): Item<GroupieViewHolder>(){
     }
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
-        viewHolder.itemView.orderTextView.text="Stawka: "+order.price.toString()+"zł"
-        viewHolder.itemView.priceDistanceTextView.text="Dystans: "+order.distance.toString()+"m"
-
+        val spanFlag = Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        val myCustomizedString = SpannableStringBuilder().append("Stawka: ", StyleSpan(Typeface.BOLD),spanFlag).append(order.price.toString()+"zł")
+        val myDistanceString=SpannableStringBuilder().append("Dystans: ", StyleSpan(Typeface.BOLD),spanFlag).append(order.distance.toString()+"m")
+        viewHolder.itemView.priceDistanceTextView.text=myCustomizedString
+        viewHolder.itemView.orderTextView.text=myDistanceString
         val sdf = SimpleDateFormat("dd/MM/yy hh:mm")
         val netDate = Date(order.timestamp*1000)
         val date =sdf.format(netDate)
@@ -156,7 +162,8 @@ class OrderItem(val order: OrdersInProgress): Item<GroupieViewHolder>(){
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 val user=snapshot.getValue(User::class.java)
-                viewHolder.itemView.textViewOrderUser.text="Klient: "+user?.username
+                val customerString=SpannableStringBuilder().append("Klient: ", StyleSpan(Typeface.BOLD),spanFlag).append(user?.username)
+                viewHolder.itemView.textViewOrderUser.text=customerString
             }
 
         })
@@ -168,7 +175,8 @@ class OrderItem(val order: OrdersInProgress): Item<GroupieViewHolder>(){
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 val driver=snapshot.getValue(User::class.java)
-                viewHolder.itemView.textViewOrderDriver.text="Kierowca: "+driver?.username
+                val driverString=SpannableStringBuilder().append("Kierowca: ", StyleSpan(Typeface.BOLD),spanFlag).append(driver?.username)
+                viewHolder.itemView.textViewOrderDriver.text=driverString
             }
 
         })

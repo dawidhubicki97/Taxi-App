@@ -39,11 +39,14 @@ class MainActivity : AppCompatActivity() {
             Log.d("brawo",loggedUser.toString())
             finish()
         }
-        if(loggedUser==1){
+        else if(loggedUser==1){
             val intent = Intent(this, DriveActivity::class.java)
             startActivity(intent)
             Log.d("brawo",loggedUser.toString())
             finish()
+        }
+        else{
+            Toast.makeText(this,"Zly typ uzytkownika", Toast.LENGTH_SHORT).show()
         }
     }
     private fun performLogin(){

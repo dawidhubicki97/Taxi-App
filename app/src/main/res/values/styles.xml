@@ -11,4 +11,12 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+    <style name="MenuItems" parent="AppTheme">
+        <item name="android:textSize">24sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+    <style name="RatingBar" parent="Theme.AppCompat">
+        <item name="colorControlNormal">#FFFF00</item>
+        <item name="colorControlActivated">@color/colorAccent</item>
+    </style>
 </resources>

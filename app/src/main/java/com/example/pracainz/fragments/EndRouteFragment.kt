@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.RatingBar
 
 import com.example.pracainz.R
+import com.example.pracainz.models.OrdersInProgress
 import com.google.android.gms.maps.MapView
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -30,7 +31,7 @@ class EndRouteFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         root=inflater.inflate(R.layout.fragment_end_route, container, false)
         val ratingBar=root!!.findViewById<RatingBar>(R.id.ratingBar)
-        ratingBar.setOnRatingBarChangeListener(object:RatingBar.OnRatingBarChangeListener{
+        ratingBar.onRatingBarChangeListener = object:RatingBar.OnRatingBarChangeListener{
             override fun onRatingChanged(p0: RatingBar?, p1: Float, p2: Boolean) {
                 Log.d("thisrating",p1.toString())
                 val ref= FirebaseDatabase.getInstance().getReference("/users/"+myDriver).child("orders").orderByKey().limitToLast(1)
@@ -42,18 +43,42 @@ class EndRouteFragment : Fragment() {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         snapshot.children.forEach {
                             val orderKey=it.key
-                        val secondRef = FirebaseDatabase.getInstance()
-                            .getReference("/users/" + myDriver + "/orders/" + orderKey + "/rating")
-                        secondRef.setValue(p1)
-                            val fragmentMap=MapFragment()
-                            activity!!.supportFragmentManager.beginTransaction().replace(R.id.container, fragmentMap).commit()
-                    }
+                            val orderfirst=it.getValue(OrdersInProgress::class.java)
+                            val secondRef = FirebaseDatabase.getInstance()
+                                .getReference("/users/" + myDriver + "/orders/" + orderKey + "/rating")
+                            secondRef.setValue(p1)
+
+
+                            val refthird= FirebaseDatabase.getInstance().getReference("users")
+                            refthird.addValueEventListener(object:ValueEventListener{
+                                override fun onCancelled(error: DatabaseError) {
+                                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                                }
+
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    snapshot.children.forEach {
+                                        val thisUserOrders=it.child("orders")
+                                        thisUserOrders.children.forEach {
+                                            val orderThis=it.getValue(OrdersInProgress::class.java)
+                                            if(orderThis!!.timestamp==orderfirst!!.timestamp) {
+                                                val thisRating = it.child("rating")
+                                                thisRating.ref.setValue(p1)
+
+                                            }
+                                        }
+                                    }
+                                }
+
+                            })
+                        }
+                        val fragmentMap=MapFragment()
+                        activity!!.supportFragmentManager.beginTransaction().replace(R.id.container, fragmentMap).commit()
                     }
 
                 })
             }
 
-        })
+        }
         return root
     }
 

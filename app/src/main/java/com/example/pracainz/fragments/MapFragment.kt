@@ -269,6 +269,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     if(isInBase==false){
                         mMap.clear()
                         decodedPolyLine.clear()
+                        buttonEnd.visibility=View.INVISIBLE
                         if(activity is MapsActivity) {
                             var bundle = Bundle()
                             bundle.putString("myDriver", myDriver!!)
@@ -288,7 +289,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
 
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(rzeszow, 15.0f))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(rzeszow, 14.0f))
     }
     fun convertDouble(value:Double):Double{
     val df = DecimalFormat("#.##")
