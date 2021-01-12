@@ -147,6 +147,7 @@ class OrderItem(val order: OrdersInProgress): Item<GroupieViewHolder>(){
         val date =sdf.format(netDate)
         viewHolder.itemView.textViewDate.text=date.toString()
         if(order.rating==0.0){
+            viewHolder.itemView.textViewRate.text=" -"
             Picasso.get().load(R.drawable.abc_ic_star_half_black_48dp).into( viewHolder.itemView.imageViewOrderRated)
 
         }

@@ -2,10 +2,14 @@ package com.example.pracainz.fragments
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Typeface
 import android.location.Location
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.StyleSpan
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -346,8 +350,10 @@ class RouteItem(val availableDrive: AvailableDrive): Item<GroupieViewHolder>(){
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
         Log.d("znaleziono","doszlotu")
+        val spanFlag = Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         viewHolder.itemView.list_title.text=availableDrive.name
-        viewHolder.itemView.list_description.text="Dystans: "+availableDrive.distance+ "m Stawka: "+ availableDrive.price+"zł"
+        val myCustomizedString = SpannableStringBuilder().append("Dystans: ", StyleSpan(Typeface.BOLD),spanFlag).append(availableDrive.distance.toString()+"m ").append("Stawka: ", StyleSpan(Typeface.BOLD),spanFlag).append(availableDrive.price.toString()+"zł")
+        viewHolder.itemView.list_description.text=myCustomizedString
 
     }
 

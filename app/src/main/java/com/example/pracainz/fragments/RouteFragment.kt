@@ -107,9 +107,9 @@ class RouteFragment : Fragment() {
         }
         cancelOrderButton.setOnClickListener {
             val uid= FirebaseAuth.getInstance().uid
-            val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests/"+uid)
             val secondref=FirebaseDatabase.getInstance().getReference("/OrderRequestsTarget/"+uid)
             val thirdref=FirebaseDatabase.getInstance().getReference("/OrderData/"+uid)
+            val ref= FirebaseDatabase.getInstance().getReference("/OrderRequests/$uid")
             ref.removeValue()
             secondref.removeValue()
             thirdref.removeValue()

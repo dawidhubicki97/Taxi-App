@@ -30,7 +30,7 @@
             app:layout_constraintStart_toStartOf="@+id/emailTextRegister"
             app:layout_constraintEnd_toEndOf="@+id/emailTextRegister" app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintTop_toBottomOf="@+id/emailTextRegister" android:layout_marginTop="24dp"
-            android:hint="Password"/>
+            android:hint="Hasło"/>
     <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -39,12 +39,12 @@
             android:padding="5dp"
             android:id="@+id/passwordRepeatTextRegister"
             android:background="@drawable/rounded_login_register_text"
-            android:hint="Repeat Password" app:layout_constraintTop_toBottomOf="@+id/passwordTextRegister"
+            android:hint="Powtórz Hasło" app:layout_constraintTop_toBottomOf="@+id/passwordTextRegister"
             android:layout_marginTop="16dp"
             app:layout_constraintStart_toStartOf="@+id/passwordTextRegister"
             app:layout_constraintEnd_toEndOf="@+id/passwordTextRegister" app:layout_constraintHorizontal_bias="0.0"/>
     <Button
-            android:text="Register"
+            android:text="Załóż Konto"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/registerButtonConfirm"
@@ -61,7 +61,7 @@
             android:padding="5dp"
             android:id="@+id/usernameText"
             android:background="@drawable/rounded_login_register_text"
-            android:hint="Username"
+            android:hint="Nazwa użytkownika"
             android:layout_marginStart="8dp"
             app:layout_constraintStart_toStartOf="parent" android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -85,7 +85,7 @@
             android:background="@drawable/rounded_login_register_text"
             android:ems="10"
             android:padding="5dp"
-            android:hint="Phone"
+            android:hint="Telefon"
             android:id="@+id/phoneTextView"
             android:layout_marginTop="16dp"
             app:layout_constraintTop_toBottomOf="@+id/passwordRepeatTextRegister"

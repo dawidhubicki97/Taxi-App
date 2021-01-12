@@ -43,7 +43,7 @@ class ChatFragment : Fragment() {
         val chatEditText=root!!.findViewById(R.id.editTextChat) as EditText
         chatButton.setOnClickListener {
 
-            val ref=FirebaseDatabase.getInstance().getReference("/OrdersInProgress/"+messagesRef+"/messages").push()
+            val ref=FirebaseDatabase.getInstance().getReference("/OrdersInProgress/$messagesRef/messages").push()
             val message = ChatMessage(uid!!,toId!!,editTextChat.text.toString(),System.currentTimeMillis()/1000)
             ref.setValue(message)
             chatEditText.text.clear()
@@ -124,10 +124,10 @@ class ChatFragment : Fragment() {
     fun fetchMessages(){
         val chatRecyclerView=root!!.findViewById(R.id.chatRecyclerView) as RecyclerView
         chatRecyclerView.adapter=adapter
-        val ref=FirebaseDatabase.getInstance().getReference("/OrdersInProgress/"+messagesRef+"/messages")
+        val ref=FirebaseDatabase.getInstance().getReference("/OrdersInProgress/$messagesRef/messages")
         ref.addChildEventListener(object :ChildEventListener{
             override fun onCancelled(error: DatabaseError) {
-
+                    Log.d("error","Nie udało się wczytać wiadomości")
             }
 
             override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
@@ -141,15 +141,11 @@ class ChatFragment : Fragment() {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                 val chatMessage=snapshot.getValue(ChatMessage::class.java)
                 if(chatMessage!=null){
-                    Log.d("ilerazy","trzy")
                     if(chatMessage.fromId==uid)
-                    adapter.add(ChatToItem(chatMessage))
+                        adapter.add(ChatToItem(chatMessage))
                     else
                         adapter.add(ChatFromItem(chatMessage))
-
-
                 }
-
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
