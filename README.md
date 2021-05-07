@@ -1,4 +1,4 @@
-# Social Media ReactJS APP
+# Taxi APP for Android.
 
 ## Description
 
