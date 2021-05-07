@@ -32,16 +32,24 @@ Taxi Application for Android.
 - Google API
 
 ## Screenshots
-Login Page:
-
+ Login Page:
+ 
  ![1](https://user-images.githubusercontent.com/37269471/117473651-792f6a00-af5a-11eb-92e6-a82862d460c4.jpg)
+ <br>
  Menu:
+ 
  ![2](https://user-images.githubusercontent.com/37269471/117473780-9b28ec80-af5a-11eb-8802-a94047c4d7a7.jpg)
+ <br>
  Location Search:
+ 
  ![3](https://user-images.githubusercontent.com/37269471/117473955-c8759a80-af5a-11eb-917c-e2a1439c5dd0.jpg)
+ <br>
  Order details:
+
  ![4](https://user-images.githubusercontent.com/37269471/117474070-e6db9600-af5a-11eb-9467-b2beefa288ea.jpg)
+ <br>
  Order in progress:
+ 
  ![5](https://user-images.githubusercontent.com/37269471/117474193-fa86fc80-af5a-11eb-84e6-27656cf74beb.jpg)
 
 
